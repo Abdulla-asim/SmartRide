@@ -1,6 +1,7 @@
 #ifndef PERSON_H
 #define PERSON_H
 
+#include <iostream>
 #include <string>
 
 using namespace std;
@@ -16,6 +17,7 @@ public:
     string phoneNumber;
     string location;
 
+    Person();
     Person(int age, string name, string email, bool gender, string phoneNumber, string location);
     virtual ~Person();
 

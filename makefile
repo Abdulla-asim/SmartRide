@@ -1,43 +1,27 @@
-# Compiler
 CXX = g++
+CXXFLAGS = -std=c++17 -g -I/mingw64/include
+LDFLAGS = -L/mingw64/lib -lraylib -lopengl32 -lgdi32 -lwinmm -static
 
-# Compiler flags
-CXXFLAGS = -std=c++17 -Wall -Wextra -I./src/core -I./src/modules -I./src/utils
-
-# Directories
 SRC_DIR = src
-CORE_DIR = $(SRC_DIR)/core
 MODULES_DIR = $(SRC_DIR)/modules
-UTILS_DIR = $(SRC_DIR)/utils
+OBJ_DIR = obj
+BIN_DIR = bin
 
-# Source files
-SRCS = $(SRC_DIR)/main.cpp \
-       $(CORE_DIR)/person.cpp \
-       $(MODULES_DIR)/user.cpp \
-       $(MODULES_DIR)/driver.cpp \
-       $(UTILS_DIR)/logger.cpp
+SOURCES = $(SRC_DIR)/main.cpp $(MODULES_DIR)/person.cpp $(MODULES_DIR)/user.cpp $(MODULES_DIR)/driver.cpp
+OBJECTS = $(SOURCES:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
+TARGET = $(BIN_DIR)/SmartRide.exe
 
-# Object files
-OBJS = $(SRCS:.cpp=.o)
-
-# Output binary
-TARGET = build/SmartRide
-
-# Default target
 all: $(TARGET)
 
-# Build target
-$(TARGET): $(OBJS)
-	@mkdir -p build
-	$(CXX) $(CXXFLAGS) -o $@ $^
+$(TARGET): $(OBJECTS)
+	@mkdir -p $(BIN_DIR)
+	$(CXX) $(OBJECTS) -o $@ $(LDFLAGS)
 
-# Rule for compiling .cpp files into .o files
-%.o: %.cpp
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Clean up build artifacts
 clean:
-	rm -rf $(OBJS) $(TARGET) build
+	rm -rf $(OBJ_DIR) $(BIN_DIR)
 
-# Phony targets
 .PHONY: all clean

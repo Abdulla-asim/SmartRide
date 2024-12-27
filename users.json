@@ -1,0 +1,16 @@
+[
+    {
+        "age": 20,
+        "email": "abdullah.asim901@gmail.com",
+        "location": "NUST",
+        "name": "Abdullah Asim",
+        "phone": "03275883747"
+    },
+    {
+        "age": 21,
+        "email": "mueed@example.com",
+        "location": "NUST",
+        "name": "Abdul Mueed",
+        "phone": "03247854965"
+    }
+]

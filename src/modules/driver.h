@@ -1,7 +1,8 @@
-#include "person.cpp"
+#ifndef DRIVER_H
+#define DRIVER_H
+
 #include "user.h"
 #include <vector>
-
 
 // Driver class inheriting from Person
 class Driver : public Person 
@@ -14,6 +15,7 @@ public:
     vector<double> ratings;
     bool availability;
 
+    Driver();
     Driver(int age, string name, string email, bool gender, string phoneNumber, string location, string licenseNumber, int yearsOfExperience);
 
     void setLicenseNumber(string newLicenseNumber);
@@ -25,4 +27,9 @@ public:
     void takeRating(double newRating);
 
     void display() const override;
+
+    void saveDriver() const;
+    static Driver* loadDriver(const std::string& email);
 };
+
+#endif

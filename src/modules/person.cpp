@@ -1,6 +1,6 @@
 #include "person.h"
-#include <iostream>
 
+Person::Person() : age(0), name(""), email(""), gender(true), phoneNumber(""), location("") {}
 Person::Person(int age, string name, string email, bool gender, string phoneNumber, string location)
     : age(age), name(name), email(email), gender(gender), phoneNumber(phoneNumber), location(location) {}
 

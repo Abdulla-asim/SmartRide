@@ -1,0 +1,20 @@
+[
+    {
+        "age": 20,
+        "email": "abdullah.asim901@gmail.com",
+        "licenseNumber": "RIA-587",
+        "location": "NUST",
+        "name": "Abdullah Asim",
+        "phone": "03275883747",
+        "yearsOfExperience": 10
+    },
+    {
+        "age": 21,
+        "email": "mueed@driver1.com",
+        "licenseNumber": "AME-587",
+        "location": "NUST",
+        "name": "Abdul Mueed",
+        "phone": "03214587547",
+        "yearsOfExperience": 11
+    }
+]
