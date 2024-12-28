@@ -13,6 +13,7 @@ void Person::setPhoneNumber(string newPhoneNumber) { phoneNumber = newPhoneNumbe
 void Person::setLocation(string newLocation) { location = newLocation; }
 
 void Person::display() const {
+    cout << "-----------------------------------" << endl;
     cout << "Name: " << name << endl;
     cout << "Age: " << age << endl;
     cout << "Email: " << email << endl;

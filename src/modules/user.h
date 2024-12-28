@@ -18,7 +18,7 @@ public:
     void display() const override;
 
     void saveUser() const;
-    static User* loadUser(const std::string& email);
+    static User loadUser(const std::string& email);
 };
 
 #endif

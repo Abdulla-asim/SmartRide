@@ -51,6 +51,7 @@ void Driver::display() const
     cout << "Number of Rides Completed: " << numberOfRidesCompleted << endl;
     cout << "Average Rating: " << averageRating << endl;
     cout << "Availability: " << (availability ? "Available" : "Unavailable") << endl;
+    cout << "-----------------------------------" << endl;
 }
 
 using json = nlohmann::json;
@@ -74,6 +75,7 @@ void Driver::saveDriver() const {
     json driverJson = {
         {"name", name},
         {"email", email},
+        {"gender", gender},
         {"phone", phoneNumber},
         {"age", age},
         {"location", location},
@@ -93,9 +95,9 @@ void Driver::saveDriver() const {
 }
 
 // Load driver
-Driver* Driver::loadDriver(const std::string& email) 
+Driver Driver::loadDriver(const std::string& email) 
 {
-    Driver* driver;
+    Driver driver;
     ifstream driverFile("drivers.json");
     if (driverFile.is_open()) 
     {
@@ -105,16 +107,17 @@ Driver* Driver::loadDriver(const std::string& email)
         {
             if (item["email"] == email) 
             {
-                driver->name = item["name"];
-                driver->email = item["email"];
-                driver->phoneNumber = item["phone_number"];
-                driver->age = item["age"];
-                driver->location = item["location"];
-                driver->licenseNumber = item["license_number"];
-                driver->yearsOfExperience = item["years_of_experience"];
-                driver->averageRating = item["average_rating"];
-                driver->numberOfRidesCompleted = item["number_of_rides_completed"];
-                driver->availability = item["availability"];
+                driver.name = item["name"];
+                driver.email = item["email"];
+                driver.gender = item["gender"];
+                driver.phoneNumber = item["phone_number"];
+                driver.age = item["age"];
+                driver.location = item["location"];
+                driver.licenseNumber = item["license_number"];
+                driver.yearsOfExperience = item["years_of_experience"];
+                driver.averageRating = item["average_rating"];
+                driver.numberOfRidesCompleted = item["number_of_rides_completed"];
+                driver.availability = item["availability"];
                 return driver;
             }
         }

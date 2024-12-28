@@ -13,7 +13,7 @@ public:
     int age;
     string name;
     string email;
-    bool gender;
+    bool gender; // Male: true, Female: false
     string phoneNumber;
     string location;
 

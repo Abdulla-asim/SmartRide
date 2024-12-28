@@ -459,10 +459,10 @@ void registerUser() {
     cout << "Enter your location: ";
     getline(cin, location);
 
-    if (gender == 'M' || gender == 'm')
-        gender = true;
+    if (gender == 'F' || gender == 'f')
+        gender = false; // Female
     else 
-        gender = false;
+        gender = true;  // Male
 
     User user(age, name, email, gender, phoneNumber, location);
     user.display();
@@ -495,52 +495,38 @@ void registerDriver() {
     cin.ignore();
 
     Driver driver(age, name, email, true, phoneNumber, location, licenseNumber, yearsOfExperience);
-    driver.display();
 
     driver.saveDriver();
 
     cout << "Driver email: " << driver.email << " registered successfully!" << endl;
+    driver.display();
 }
 
 // Sign in as a user by searching from the json file
-User* signInUser() {
+User signInUser() {
     string email;
     cout << "Enter your email: ";
     getline(cin, email);
-
-    User* user = User::loadUser(email);
-    if (user->email == "") {
-        cout << "User not found. Please register first." << endl;
-        return nullptr;
-    }
-    else {
-        cout << user->email << " Logged in Successfully!" << endl;
-    }
+    User user = User::loadUser(email);
+    
     return user;
 }
 
 // Sign in as a driver by searching from the json file
-Driver* signInDriver() {
+Driver signInDriver() {
     string email;
     cout << "Enter your email: ";
     getline(cin, email);
-
-    Driver* driver = Driver::loadDriver(email);
-    if (driver->email == "") {
-        cout << "Driver not found. Please register first." << endl;
-        return nullptr;
-    }
-    else {
-        cout << "Driver found!" << endl;
-    }
+    Driver driver = Driver::loadDriver(email);
+    
     return driver;
 }
 
 
 int main()
 {
-    User* currentUser; // For storing the current user
-    Driver* currentDriver; // For storing the current driver
+    User currentUser; // For storing the current user
+    Driver currentDriver; // For storing the current driver
     bool exit = false;
     do 
     {
@@ -571,18 +557,26 @@ int main()
         case 3:
             cout << "Signing in as a user...\n";
             currentUser = signInUser();
-            if (currentUser == nullptr) {
-                cout << "Could not log in...\n";
+            if (currentUser.email == "") {
+                cout << "User not found. Please register first." << endl;
                 break;
+            }
+            else {
+                cout << currentUser.email << " Logged in as User!" << endl;
+                currentUser.display();
             }
             exit = true;
             break;
         case 4:
             cout << "Signing in as a driver...\n";
             currentDriver = signInDriver();
-            if (currentDriver == nullptr) {
-                cout << "Could not log in...\n";
+            if (currentDriver.email == "") {
+                cout << "Driver not found. Please register first." << endl;
                 break;
+            }
+            else {
+                cout << "Logged in as Driver!" << endl;
+                currentDriver.display();
             }
             exit = true;
             break;

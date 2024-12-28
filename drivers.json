@@ -2,6 +2,7 @@
     {
         "age": 20,
         "email": "abdullah.asim901@gmail.com",
+        "gender": "true",
         "licenseNumber": "RIA-587",
         "location": "NUST",
         "name": "Abdullah Asim",
@@ -11,6 +12,7 @@
     {
         "age": 21,
         "email": "mueed@driver1.com",
+        "gender": "true",
         "licenseNumber": "AME-587",
         "location": "NUST",
         "name": "Abdul Mueed",

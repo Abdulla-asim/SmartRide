@@ -29,7 +29,7 @@ public:
     void display() const override;
 
     void saveDriver() const;
-    static Driver* loadDriver(const std::string& email);
+    static Driver loadDriver(const std::string& email);
 };
 
 #endif

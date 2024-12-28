@@ -25,6 +25,7 @@ void User::display() const
 {
     Person::display();
     cout << "Ride Status: " << rideStatus << endl;
+    cout << "-----------------------------------" << endl;
 }
 
 
@@ -49,6 +50,7 @@ void User::saveUser() const {
     json userJson = {
         {"name", name},
         {"email", email},
+        {"gender", gender},
         {"phone", phoneNumber},
         {"age", age},
         {"location", location}
@@ -65,19 +67,23 @@ void User::saveUser() const {
     }
 }
 
-User* User::loadUser(const std::string& email) {
-    User *user;
+User User::loadUser(const std::string& email) {
+    User user;
     std::ifstream file("users.json");
     if (file.is_open()) {
+        cout << "Opened file" << endl;
         json j;
         file >> j;
         for (const auto& item : j) {
             if (item["email"] == email) {
-                user->name = item["name"];
-                user->email = item["email"];
-                user->phoneNumber = item["phone"];
-                user->age = item["age"];
-                user->location = item["location"];
+                cout << "User found" << endl;
+
+                user.name = item["name"];
+                user.email = item["email"];
+                user.gender = item["gender"];
+                user.phoneNumber = item["phone"];
+                user.age = item["age"];
+                user.location = item["location"];
                 return user;
             }
         }
@@ -87,3 +93,32 @@ User* User::loadUser(const std::string& email) {
     }
     return user; // Return an empty user if not found
 }
+
+// User User::loadUser(const std::string& email) {
+//     User user;
+//     std::ifstream file("users.json");
+//     if (file.is_open()) {
+//         if (file.peek() != std::ifstream::traits_type::eof()) {
+//             json j;
+//             try {
+//                 file >> j;
+//                 for (const auto& item : j) {
+//                     if (item["email"] == email) {
+//                         user.name = item["name"];
+//                         user.email = item["email"];
+//                         user.phoneNumber = item["phone"];
+//                         user.age = item["age"];
+//                         user.location = item["location"];
+//                         return user;
+//                     }
+//                 }
+//             } catch (const json::parse_error& e) {
+//                 std::cerr << "Parse error: " << e.what() << std::endl;
+//             }
+//         }
+//         file.close();
+//     } else {
+//         std::cerr << "Error opening file for reading." << std::endl;
+//     }
+//     return user; // Return an empty user if not found
+// }
