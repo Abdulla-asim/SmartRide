@@ -15,6 +15,10 @@
 
 using namespace std;
 
+Driver* createRandomDriver(string ,string ,string , bool ,string ,int ,int , const std::vector<Node*>&);
+
+vector<Node*> arrayOfNodes;
+
 // A* Algorithm to find the path
 vector<Edge*> aStar(Node* start, Node* goal) {
 
@@ -75,7 +79,7 @@ bool areEdgesEqual(Edge* edge1, Edge* edge2) {
 
 // Register and store users in json file
 void registerUser() {
-    string name, email, phoneNumber, location;
+    string name, email, phoneNumber;
     char gender;
     int age;
 
@@ -91,15 +95,13 @@ void registerUser() {
     cout << "Enter your age: ";
     cin >> age;
     cin.ignore();
-    cout << "Enter your location: ";
-    getline(cin, location);
 
     if (gender == 'F' || gender == 'f')
         gender = false; // Female
     else 
         gender = true;  // Male
 
-    User user(age, name, email, gender, phoneNumber, location);
+    User user(age, name, email, gender, phoneNumber);
     user.display();
 
     user.saveUser();
@@ -111,6 +113,7 @@ void registerUser() {
 void registerDriver() {
     string name, email, phoneNumber, location, licenseNumber;
     int age, yearsOfExperience;
+    char gender;
 
     cout << "Enter your name: ";
     getline(cin, name);
@@ -121,8 +124,9 @@ void registerDriver() {
     cout << "Enter your age: ";
     cin >> age;
     cin.ignore();
-    cout << "Enter your location: ";
-    getline(cin, location);
+    cout << "Enter your gender(M/F): ";
+    cin >> gender;
+    cin.ignore();
     cout << "Enter your license number: ";
     getline(cin, licenseNumber);
     cout << "Enter your years of experience: ";
@@ -132,13 +136,18 @@ void registerDriver() {
     string vehicleType;
     getline(cin, vehicleType);
 
+    if (gender == 'F' || gender == 'f')
+        gender = false; // Female
+    else 
+        gender = true;  // Male
 
-    Driver driver(age, name, email, true, phoneNumber, location, licenseNumber, yearsOfExperience, vehicleType);
+    //Driver driver(age, name, email, true, phoneNumber, licenseNumber, yearsOfExperience, vehicleType, );
+    Driver* driver = createRandomDriver(name, email, phoneNumber, gender, licenseNumber, age, yearsOfExperience, arrayOfNodes);
 
-    driver.saveDriver();
+    driver->saveDriver();
 
-    cout << "Driver email: " << driver.email << " registered successfully!" << endl;
-    driver.display();
+    cout << "Driver email: " << driver->email << " registered successfully!" << endl;
+    driver->display();
 }
 
 // Sign in as a user by searching from the json file
@@ -172,7 +181,7 @@ struct DriverDistance {
     }
 };
 
-std::priority_queue<DriverDistance, std::vector<DriverDistance>, std::greater<DriverDistance>> driverQueue;
+// std::priority_queue<DriverDistance, std::vector<DriverDistance>, std::greater<DriverDistance>> driverQueue;
 
 float calculateDistance(Node* node1, Node* node2) {
     float dx = node1->x - node2->x;
@@ -197,6 +206,17 @@ Driver* findNearestDriver(Node* userLocation, const std::vector<Driver*>& driver
     return nullptr; // No available drivers
 }
 // end
+
+
+// Create random driver
+Driver* createRandomDriver(string name,string email,string phoneNumber, bool is_male,string licenseNumber,int age,int yearsOfExperience, const std::vector<Node*>& nodes) 
+{
+    Node* currentLocation = nodes[rand() % nodes.size()];
+    string vehicleType = Vehicle::vehicleTypes[rand() % 4]; // Random vehicle type
+
+    return new Driver(age, name, email, is_male, phoneNumber, licenseNumber, yearsOfExperience, vehicleType, currentLocation);
+}
+
 
 int main()
 {
@@ -302,7 +322,7 @@ int main()
     vector<Edge*> uniqueEdges;
     unordered_set<string> edgeSet; // To ensure edges are added only once
 
-    Node* arrayOfNodes[] = {
+    arrayOfNodes = {
     node1, node2, node3, node4, node5, node6,
     node7, node8, node9, node10, node11, node12,
     node13, node14, node15, node16, node17, node18,
@@ -317,11 +337,11 @@ int main()
     Vehicle v5(5, "Truck", node21, node19);
 
     // Creating drivers and assigning vehicles
-    Driver d1(25, "Ali", "ali@driver.com", true, "03001234567", "Clifton", "ABC123", 5, "Car");
-    Driver d2(30, "Ahmed", "ahmed@driver.com", true, "03123456789", "Saddar", "XYZ456", 3, "Rickshaw");
-    Driver d3(35, "Sara", "sara@driver.com", false, "03234567890", "Defence", "DEF789", 7, "Bike");
-    Driver d4(40, "John", "john@driver.com", true, "03345678901", "Gulshan", "GHI012", 4, "Truck");
-    Driver d5(45, "Maria", "maria@driver.com", false, "03456789012", "Korangi", "JKL345", 6, "Car");
+    Driver d1(25, "Ali", "ali@driver.com", true, "03001234567", "ABC123", 5, "Car", arrayOfNodes[0]);
+    Driver d2(30, "Ahmed", "ahmed@driver.com", true, "03123456789", "XYZ456", 3, "Rickshaw", arrayOfNodes[1]);
+    Driver d3(35, "Sara", "sara@driver.com", false, "03234567890", "DEF789", 7, "Bike", arrayOfNodes[2]);
+    Driver d4(40, "John", "john@driver.com", true, "03345678901", "GHI012", 4, "Truck", arrayOfNodes[3]);
+    Driver d5(45, "Maria", "maria@driver.com", false, "03456789012", "JKL345", 6, "Car", arrayOfNodes[4]);
 
     d1.assignedVehicle = &v6;
     d2.assignedVehicle = &v2;
@@ -461,7 +481,6 @@ int main()
     } while (!exit);
 
     int vehicle;    // Vehicle to be used for ride
-    vector<Vehicle*> vehicles; // Vehicles available for the user
     int start, end; // Starting and ending locations
 
     // Menu for user and driver options
@@ -600,19 +619,40 @@ int main()
     }
 
 
-
-    Vehicle v1(0, vehicleTypes[vehicle - 1], arrayOfNodes[start - 1], arrayOfNodes[end - 1]);
+    Driver* d6 = createRandomDriver("Ali", "ali@driver.com", "03001234567", true, "ABC123", 27 , 10, arrayOfNodes);
+    Vehicle v1(0, vehicleTypes[vehicle - 1], d6->currentLocation, arrayOfNodes[start - 1]);
     v1.color = ORANGE;
     v1.speed = 0.9;
     vehicles.push_back(v1);
-    Driver d6(0, "Ali", "ali@driver.com", true, "03001234567", "Clifton", "ABC123", 5, "Car");
-    d6.assignedVehicle = &v1;
-    drivers.push_back(&d6);
+    d6->assignedVehicle = &v1;
+    drivers.push_back(d6);
 
     
-    
-    //Vehicle driverVehicle(0, currentDriver.vehicleType, arrayOfNodes[start - 1], arrayOfNodes[end - 1]);
+    Driver* nearestDriver = findNearestDriver(arrayOfNodes[start - 1], drivers);
+    if (nearestDriver != nullptr) 
+    {
+        char choice;
+        cout << "Nearest driver found: " << nearestDriver->name << endl;
+        nearestDriver->display();
+        cout << "Do you want to request the ride? (Y/N): ";
+        cin >> choice;
+        cin.ignore();
+        if (choice == 'Y' || choice == 'y')
+            currentUser.requestRide(arrayOfNodes[start - 1]);
+    }
+    else 
+    {
+        cout << "No drivers available at the moment." << endl;
+    }
 
+    if (currentUser.rideStatus == "Accepted")
+        nearestDriver->acceptRide(currentUser);
+
+    
+
+    cout << "Ride request accepted by " << nearestDriver->name << endl;
+
+    // Raylib window
     InitWindow(1920, 1080, "Ride Sharing App");
 
     Image trafficLight = LoadImage("src\\utils\\light.png");  // Corrected path

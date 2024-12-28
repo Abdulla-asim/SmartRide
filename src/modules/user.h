@@ -2,16 +2,18 @@
 #define USER_H
 
 #include "person.h"
+#include "node.h"
 
 // User class inheriting from Person
 class User : public Person {
 public: 
     string rideStatus; // None, Requested, Active
+    Node* currentLocation;
 
     User();
-    User(int age, string name, string email, bool gender, string phoneNumber, string location);
+    User(int age, string name, string email, bool gender, string phoneNumber);
 
-    bool requestRide();
+    bool requestRide(Node* currentLocation);
 
     void setRideStatus(string newRideStatus);
 

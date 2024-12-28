@@ -5,9 +5,9 @@
 // Driver class inheriting from Person
 
 Driver::Driver() : Person(), licenseNumber(""), yearsOfExperience(0), averageRating(0.0), numberOfRidesCompleted(0), availability(true) {}
-Driver::Driver(int age, string name, string email, bool gender, string phoneNumber, string location, string licenseNumber, int yearsOfExperience, string vehicleType) 
-    : Person(age, name, email, gender, phoneNumber, location), licenseNumber(licenseNumber), yearsOfExperience(yearsOfExperience),
-        averageRating(0.0), numberOfRidesCompleted(0), availability(true), currentLocation(nullptr), assignedVehicle(nullptr), vehicleType(vehicleType) {}
+Driver::Driver(int age, string name, string email, bool gender, string phoneNumber, string licenseNumber, int yearsOfExperience, string vehicleType, Node* currentLocation) 
+    : Person(age, name, email, gender, phoneNumber), licenseNumber(licenseNumber), yearsOfExperience(yearsOfExperience),
+        averageRating(0.0), numberOfRidesCompleted(0), availability(true), assignedVehicle(nullptr), vehicleType(vehicleType), currentLocation(currentLocation) {}
 
 void Driver::setLicenseNumber(string newLicenseNumber) { licenseNumber = newLicenseNumber; }
 void Driver::setYearsOfExperience(int newYearsOfExperience) { yearsOfExperience = newYearsOfExperience; }
@@ -19,6 +19,8 @@ void Driver::acceptRide(const User& user)
     {
         availability = false;
         cout << "Driver " << name << " accepted the ride for " << user.name << "." << endl;
+        assignedVehicle->goalNode = user.currentLocation;
+        assignedVehicle->path = aStar(currentLocation, user.currentLocation);
     } 
     else 
     {
@@ -79,7 +81,6 @@ void Driver::saveDriver() const {
         {"phone", phoneNumber},
         {"age", age},
         {"vehicleType", vehicleType},
-        {"location", location},
         {"licenseNumber", licenseNumber},
         {"yearsOfExperience", yearsOfExperience}
     };
@@ -114,7 +115,6 @@ Driver Driver::loadDriver(const std::string& email)
                 driver.phoneNumber = item["phone_number"];
                 driver.age = item["age"];
                 driver.vehicleType = item["vehicle_type"];
-                driver.location = item["location"];
                 driver.licenseNumber = item["license_number"];
                 driver.yearsOfExperience = item["years_of_experience"];
                 driver.averageRating = item["average_rating"];

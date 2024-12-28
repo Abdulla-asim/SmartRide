@@ -27,6 +27,9 @@ public:
     bool hasReachedDestination = false; // Destination reached status
     Color color = BLUE;        // Color of the vehicle
 
+    // Vehicle types
+    static string vehicleTypes[4];
+
     // Constructor
     Vehicle(int id, string type, Node* startNode, Node* goalNode);
     Vehicle(int id, string type, vector<Node*> nodes);

@@ -15,10 +15,9 @@ public:
     string email;
     bool gender; // Male: true, Female: false
     string phoneNumber;
-    string location;
 
     Person();
-    Person(int age, string name, string email, bool gender, string phoneNumber, string location);
+    Person(int age, string name, string email, bool gender, string phoneNumber);
     virtual ~Person();
 
     void setAge(int newAge);

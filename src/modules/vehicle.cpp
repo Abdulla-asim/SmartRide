@@ -1,5 +1,7 @@
 #include "vehicle.h"
 
+string Vehicle::vehicleTypes[4] = {"Car", "Truck", "Bus", "Bike"};
+
 // Constructor
 Vehicle::Vehicle(int id, string type, Node* startNode, Node* goalNode)
     : id(id), type(type), currentNode(startNode), goalNode(goalNode), currentEdge(nullptr), x(startNode->x), y(startNode->y)

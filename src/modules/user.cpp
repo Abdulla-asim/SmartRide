@@ -1,19 +1,21 @@
 #include "user.h"
+#include "node.h"
 #include <fstream>
 #include <nlohmann/json.hpp>
 
 string rideStatus; // None, Requested, Active
 
-User::User(int age, string name, string email, bool gender, string phoneNumber, string location)
-    : Person(age, name, email, gender, phoneNumber, location), rideStatus("None") {}
+User::User(int age, string name, string email, bool gender, string phoneNumber)
+    : Person(age, name, email, gender, phoneNumber), rideStatus("None"), currentLocation(nullptr) {}
 
 User::User() : Person(), rideStatus("None") {}
 
-bool User::requestRide() 
+bool User::requestRide(Node* currentLocation) 
 {
     if (rideStatus == "None") 
     {   // Request if not already requested
         rideStatus = "Requested";
+        currentLocation = currentLocation;
         return true;                // return true
     }
     return false; // User is Active or has Already Requested
@@ -53,7 +55,6 @@ void User::saveUser() const {
         {"gender", gender},
         {"phone", phoneNumber},
         {"age", age},
-        {"location", location}
     };
 
     usersJson.push_back(userJson);
@@ -83,7 +84,6 @@ User User::loadUser(const std::string& email) {
                 user.gender = item["gender"];
                 user.phoneNumber = item["phone"];
                 user.age = item["age"];
-                user.location = item["location"];
                 return user;
             }
         }
