@@ -2,7 +2,7 @@
     {
         "age": 20,
         "email": "abdullah.asim901@gmail.com",
-        "gender": "true",
+        "gender": true,
         "location": "NUST",
         "name": "Abdullah Asim",
         "phone": "03275883747"

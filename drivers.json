@@ -2,7 +2,7 @@
     {
         "age": 20,
         "email": "abdullah.asim901@gmail.com",
-        "gender": "true",
+        "gender": true,
         "licenseNumber": "RIA-587",
         "location": "NUST",
         "name": "Abdullah Asim",

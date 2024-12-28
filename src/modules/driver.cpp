@@ -5,9 +5,9 @@
 // Driver class inheriting from Person
 
 Driver::Driver() : Person(), licenseNumber(""), yearsOfExperience(0), averageRating(0.0), numberOfRidesCompleted(0), availability(true) {}
-Driver::Driver(int age, string name, string email, bool gender, string phoneNumber, string location, string licenseNumber, int yearsOfExperience)
+Driver::Driver(int age, string name, string email, bool gender, string phoneNumber, string location, string licenseNumber, int yearsOfExperience, string vehicleType) 
     : Person(age, name, email, gender, phoneNumber, location), licenseNumber(licenseNumber), yearsOfExperience(yearsOfExperience),
-        averageRating(0.0), numberOfRidesCompleted(0), availability(true) {}
+        averageRating(0.0), numberOfRidesCompleted(0), availability(true), currentLocation(nullptr), assignedVehicle(nullptr), vehicleType(vehicleType) {}
 
 void Driver::setLicenseNumber(string newLicenseNumber) { licenseNumber = newLicenseNumber; }
 void Driver::setYearsOfExperience(int newYearsOfExperience) { yearsOfExperience = newYearsOfExperience; }
@@ -78,6 +78,7 @@ void Driver::saveDriver() const {
         {"gender", gender},
         {"phone", phoneNumber},
         {"age", age},
+        {"vehicleType", vehicleType},
         {"location", location},
         {"licenseNumber", licenseNumber},
         {"yearsOfExperience", yearsOfExperience}
@@ -112,6 +113,7 @@ Driver Driver::loadDriver(const std::string& email)
                 driver.gender = item["gender"];
                 driver.phoneNumber = item["phone_number"];
                 driver.age = item["age"];
+                driver.vehicleType = item["vehicle_type"];
                 driver.location = item["location"];
                 driver.licenseNumber = item["license_number"];
                 driver.yearsOfExperience = item["years_of_experience"];
@@ -128,4 +130,13 @@ Driver Driver::loadDriver(const std::string& email)
         cerr << "Error opening file for reading." << endl;
     }
     return driver;
+}
+
+void Driver::moveAlongPath() {
+    if (assignedVehicle && !assignedVehicle->path.empty()) {
+        assignedVehicle->moveVehicle(); // Update vehicle's position
+        if (assignedVehicle->path.empty()) {
+            availability = true; // Mark driver as available
+        }
+    }
 }

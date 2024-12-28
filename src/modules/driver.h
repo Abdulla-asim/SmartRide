@@ -2,6 +2,8 @@
 #define DRIVER_H
 
 #include "user.h"
+#include "node.h"
+#include "vehicle.h"
 #include <vector>
 
 // Driver class inheriting from Person
@@ -14,9 +16,12 @@ public:
     int numberOfRidesCompleted;
     vector<double> ratings;
     bool availability;
+    string vehicleType;
+    Node* currentLocation;
+    Vehicle* assignedVehicle;
 
     Driver();
-    Driver(int age, string name, string email, bool gender, string phoneNumber, string location, string licenseNumber, int yearsOfExperience);
+    Driver(int age, string name, string email, bool gender, string phoneNumber, string location, string licenseNumber, int yearsOfExperience, string vehicleType);
 
     void setLicenseNumber(string newLicenseNumber);
     void setYearsOfExperience(int newYearsOfExperience);
@@ -30,6 +35,8 @@ public:
 
     void saveDriver() const;
     static Driver loadDriver(const std::string& email);
+
+    void moveAlongPath();
 };
 
 #endif

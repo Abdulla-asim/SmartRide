@@ -1,227 +1,37 @@
-#include <iostream>
-#include <vector>
 #include <set>
-#include <cmath>
-#include <unordered_map>
 #include <queue>
-#include <climits>   // For INT_MAX
-#include <algorithm> // For reverse()
-#include "raylib.h"
-#include <unordered_set>
-#include <string>
-#include <limits>
-#include <time.h>
+#include <climits>      // For INT_MAX
+#include <algorithm>    // For reverse()
 #include "modules/user.h"
+#include <limits>
+#include <unordered_set>
 #include "modules/driver.h"
+#include <time.h>
+#include "modules/node.h" 
 #include <strings.h>
+#include "modules/vehicle.h"
+#include "modules/edge.h"
+#include <functional>
 
 using namespace std;
 
-class Edge;
-
-class Node {
-public:
-    int id;                   // Unique identifier for the node
-    float x, y;               // Coordinates of the node
-    string name;              // Name of the node
-    vector<Node*> neighbors;  // List of adjacent nodes
-    vector<Edge*> edges;      // List of edges for the node (using pointers)
-
-    // Constructor
-    Node(int nodeId, float xCoord, float yCoord, string nodeName)
-        : id(nodeId), x(xCoord), y(yCoord), name(nodeName) {}
-
-    // Method to add a neighbor and create the edge
-    void addNeighbor(Node* neighbor);
-
-    // Display node details
-    void display()
-    {
-        cout << "Node " << id << " (" << name << ", x: " << x << ", y: " << y << ") is connected to: ";
-        for (Node* neighbor : neighbors)
-        {
-            cout << neighbor->id << " (" << neighbor->name << ") ";
-        }
-        cout << endl;
-    }
-
-    virtual string toString()
-    {
-        return "node";
-    }
-
-    virtual int getType()
-    {
-        return 0;
-    }
-};
-
-class TrafficIntersection : public Node {
-public:
-    int type;             // Intersection type (4-way, 3-way)
-    vector<bool> signals; // Array of traffic signals for each direction
-    int lightRecord4 = 0;
-    int lightRecord3 = 0;
-
-    // Constructor
-    TrafficIntersection(int nodeId, float xCoord, float yCoord, string nodeName, int intersectionType)
-        : Node(nodeId, xCoord, yCoord, nodeName), type(intersectionType)
-    {
-        initializeSignals(intersectionType);
-    }
-
-    // Method to display intersection details
-    void displayIntersection()
-    {
-        cout << "Traffic Intersection " << id << " (" << name << ")\n";
-        cout << "Type: " << (type == 4 ? "4-way" : "3-way") << endl;
-        cout << "Signals: ";
-        for (bool signal : signals)
-        {
-            cout << (signal ? "Green" : "Red") << " ";
-        }
-        cout << endl;
-    }
-
-    void initializeSignals(int intersectionType)
-    {
-        if (intersectionType == 4)
-        {
-            signals = vector<bool>(4, false); // 4 signals for a 4-way intersection
-            signals[0] = true;
-        }
-        else if (intersectionType == 3)
-        {
-            signals = vector<bool>(3, false); // 3 signals for a 3-way intersection
-            signals[0] = true;
-        }
-        else
-        {
-            cerr << "Invalid intersection type. Defaulting to 4-way." << endl;
-            signals = vector<bool>(4, false); // Default to 4 signals
-        }
-    }
-
-    void changeLights()
-    {
-        if (type == 4)
-        {
-            signals[lightRecord4] = false;
-            lightRecord4 = (lightRecord4 + 1) % type;
-            signals[lightRecord4] = true;
-        }
-        if (type == 3)
-        {
-            signals[lightRecord3] = false;
-            lightRecord3 = (lightRecord3 + 1) % type;
-            signals[lightRecord3] = true;
-        }
-    }
-
-    int getType() override
-    {
-        return type;
-    }
-};
-
-class Edge
-{
-public:
-    Node* node1;      // First node of the edge
-    Node* node2;      // Second node of the edge
-    float length;     // Length of the edge
-    int no_of_agents; // Number of agents on the edge
-    float width;      // Width of the road
-    int max_traffic;  // Maximum number of allowed traffic
-
-    // Constructor with width parameter
-    Edge(Node* n1, Node* n2, float road_width) : node1(n1), node2(n2), width(road_width), no_of_agents(0)
-    {
-        // Calculate the length using the Euclidean distance formula
-        length = sqrt(pow(n1->x - n2->x, 2) + pow(n1->y - n2->y, 2));
-
-        // Calculate the maximum allowed traffic based on width and length
-        float density_factor = 0.123f; // Example density: 10 agents per unit area
-        max_traffic = static_cast<int>(width * length * density_factor);
-    }
-
-    // Constructor with only two nodes (everything else defaults to 0 or flag values)
-    Edge(Node* n1, Node* n2) : node1(n1), node2(n2), length(0), no_of_agents(0), width(0), max_traffic(0) {}
-};
-
-// Method implementation for adding a neighbor and creating an edge
-void Node::addNeighbor(Node* neighbor)
-{
-    neighbors.push_back(neighbor);
-    Edge* edge = new Edge(this, neighbor, 3.2); // Create a new edge dynamically
-    edges.push_back(edge);                     // Add the edge pointer to the edges list
-    neighbor->neighbors.push_back(this);
-    Edge* edgeReverse = new Edge(neighbor, this, 3.2);
-    neighbor->edges.push_back(edgeReverse);
-}
-
-// Cost function to find the edge and return the length
-int cost(Node* currentNode, Node* nextNode)
-{
-    // Loop through the edges of currentNode to find the one with nextNode
-    for (Edge* edge : currentNode->edges)
-    {
-        if ((edge->node1 == nextNode) || (edge->node2 == nextNode))
-        {
-            float penalty = 0;
-            if(edge->no_of_agents < edge->max_traffic) {
-                penalty = 1 + (edge->no_of_agents / edge->max_traffic);
-            }
-            else {
-                penalty = 1000;
-
-            }
-            int congestionFactor = 100;
-            float congestionCost = congestionFactor * penalty;
-            return edge->length + congestionCost; // Include number of agents in cost
-        }
-    }
-    return INT_MAX; // Indicates no edge found
-}
-
-// Heuristic function (Euclidean distance)
-int heuristic(Node* node, Node* goal)
-{
-    float euclideanDistance = sqrt(pow(node->x - goal->x, 2) + pow(node->y - goal->y, 2));
-    return static_cast<int>(euclideanDistance);
-}
-
-Edge* findEdge(Node* node1, Node* node2);
-
 // A* Algorithm to find the path
+vector<Edge*> aStar(Node* start, Node* goal) {
 
-// Global cost and heuristic functions
-extern int cost(Node* currentNode, Node* nextNode);
-extern int heuristic(Node* node, Node* goal);
-
-Edge* aStar(Node* start, Node* goal)
-{
-    // Priority queue to store nodes with their f_score (g_score + heuristic)
     using QueueElement = pair<float, Node*>; // {f_score, Node*}
     priority_queue<QueueElement, vector<QueueElement>, greater<>> openSet;
 
-    // Maps for g_score and cameFrom relationships
     unordered_map<Node*, float> gScore;
     unordered_map<Node*, Edge*> cameFromEdge;
 
-    // Initialize all g_scores to infinity
     gScore[start] = 0;
+    openSet.push({ Node::heuristic(start, goal), start });
 
-    // Push the starting node with its f_score
-    openSet.push({ heuristic(start, goal), start });
-
-    while (!openSet.empty())
-    {
+    while (!openSet.empty()) {
         Node* current = openSet.top().second;
         openSet.pop();
 
-        if (current == goal)
-        {
+        if (current == goal) {
             // Goal found, reconstruct path
             vector<Edge*> path;
             while (cameFromEdge.find(current) != cameFromEdge.end())
@@ -231,202 +41,27 @@ Edge* aStar(Node* start, Node* goal)
                 current = (edge->node1 == current) ? edge->node2 : edge->node1;
             }
             reverse(path.begin(), path.end());
-            return path[0];
+            return path; // Return the full path as a vector of edges
         }
 
         // Explore neighbors
-        for (size_t i = 0; i < current->neighbors.size(); ++i)
-        {
+        for (size_t i = 0; i < current->neighbors.size(); ++i) {
             Node* neighbor = current->neighbors[i];
             Edge* edge = current->edges[i];
 
-            float tentative_gScore = gScore[current] + cost(current, neighbor);
+            float tentative_gScore = gScore[current] + Node::cost(current, neighbor);
 
-            if (!gScore.count(neighbor) || tentative_gScore < gScore[neighbor])
-            {
+            if (!gScore.count(neighbor) || tentative_gScore < gScore[neighbor]) {
                 gScore[neighbor] = tentative_gScore;
-                float fScore = tentative_gScore + heuristic(neighbor, goal);
+                float fScore = tentative_gScore + Node::heuristic(neighbor, goal);
                 openSet.push({ fScore, neighbor });
                 cameFromEdge[neighbor] = edge;
             }
         }
     }
-
     // If we reach here, no path was found
-    return nullptr;
+    return {}; // Return an empty path if no path exists
 }
-
-
-// Find an edge between two nodes
-Edge* findEdge(Node* node1, Node* node2)
-{
-    for (Edge* edge : node1->edges)
-    {
-        if ((edge->node2 == node2))
-        {
-            return edge; // Return the pointer to the edge
-        }
-    }
-    return nullptr; // Return nullptr if no edge found
-}
-
-class Vehicle
-{
-public:
-    int id;              // Unique ID for the vehicle
-    string type;         // Vehicle type (car, truck, bus, motorcycle, etc.)
-    float length;        // Length of the vehicle in meters
-    Node* currentNode;   // Current node the vehicle is at
-    Node* goalNode;      // Goal node for the vehicle
-    Edge* currentEdge;   // Current edge the vehicle is on
-    vector<Node*> path; // Planned path for the vehicle (sequence of nodes)
-    float x;             // Current x-coordinate of the vehicle
-    float y;             // Current y-coordinate of the vehicle
-    float speed = 0.7;
-    Node* currentNodeToReach;
-    bool hasReachedDestination = false;
-    Color color = BLUE;
-
-    // Constructor
-    Vehicle(int id, string type, Node* startNode, Node* goalNode)
-        : id(id), type(type), currentNode(startNode), goalNode(goalNode), currentEdge(nullptr), x(startNode->x), y(startNode->y)
-    {
-        this->currentEdge = aStar(currentNode, this->goalNode);
-        if (currentEdge->node1->x == currentNode->x && currentEdge->node1->y == currentNode->y)
-        {
-            this->currentNodeToReach = currentEdge->node2;
-        }
-        else
-        {
-            this->currentNodeToReach = currentEdge->node1;
-        }
-        setLengthByType();
-    }
-
-    // Assign realistic average lengths based on vehicle type
-    void setLengthByType()
-    {
-        static unordered_map<string, float> averageLengths = {
-            {"Car", 4.5},        // Average length for cars
-            {"Truck", 12.0},     // Average length for trucks
-            {"Bus", 10.5},       // Average length for buses
-            {"Bike", 2.0}, // Average length for motorcycles
-            {"Rickshaw", 1.8}     // Average length for bicycles
-        };
-
-        if (averageLengths.find(type) != averageLengths.end())
-        {
-            length = averageLengths[type];
-        }
-        else
-        {
-            cerr << "Unknown vehicle type: " << type << ". Assigning default length of 4.5 meters." << endl;
-            length = 4.5; // Default length for unknown vehicle types
-        }
-    }
-
-    // Move the vehicle to the next node in the path
-    void moveToNextNode()
-    {
-        if (path.empty())
-        {
-            cerr << "No path defined for the vehicle." << endl;
-            return;
-        }
-
-        // Update the current node and edge
-        currentNode = path.front();
-        path.erase(path.begin());
-        if (!path.empty())
-        {
-            currentEdge = findEdge(currentNode, path.front());
-        }
-        else
-        {
-            currentEdge = nullptr;
-        }
-
-        // Update the x and y coordinates (assuming simplistic linear interpolation for now)
-        x = currentNode->x;
-        y = currentNode->y;
-
-        // Check if the vehicle has reached its goal
-        if (currentNode == goalNode)
-        {
-            cout << "Vehicle ID " << id << " has reached its destination." << endl;
-        }
-    }
-
-    bool moveVehicle() 
-    {
-        if (this->x == goalNode->x && this->y == goalNode->y)
-        {
-            Edge* edgeToChange = findEdge(currentEdge->node1, currentEdge->node2);
-            edgeToChange->no_of_agents--;
-            edgeToChange = findEdge(currentEdge->node2, currentEdge->node1);
-            edgeToChange->no_of_agents--;
-            return true;
-        }
-
-        if (this->x == currentNode->x && this->y == currentNode->y)
-        {
-            this->currentEdge = aStar(currentNode, this->goalNode);
-            if (currentEdge->node1->x == currentNode->x && currentEdge->node1->y == currentNode->y)
-            {
-                this->currentNodeToReach = currentEdge->node2;
-            }
-            else
-            {
-                this->currentNodeToReach = currentEdge->node1;
-            }
-            changeCoordinates();
-            Edge* edgeToChange = findEdge(currentEdge->node1, currentEdge->node2);
-            edgeToChange->no_of_agents++;
-            edgeToChange = findEdge(currentEdge->node2, currentEdge->node1);
-            edgeToChange->no_of_agents++;
-            
-        }
-        else if (this->x == currentNodeToReach->x && this->y == currentNodeToReach->y)
-        {
-            currentNode = currentNodeToReach;
-            Edge* edgeToChange = findEdge(currentEdge->node1, currentEdge->node2);
-            edgeToChange->no_of_agents--;
-            edgeToChange = findEdge(currentEdge->node2, currentEdge->node1);
-            edgeToChange->no_of_agents--;
-        }
-        else
-        {
-            changeCoordinates();
-        }
-        return false;
-    }
-
-    void changeCoordinates()
-    {
-        float dx = currentNodeToReach->x - this->x; // Difference in x-coordinates
-        float dy = currentNodeToReach->y - this->y; // Difference in y-coordinates
-
-        // Distance between current position and next node
-        float distanceToNextNode = sqrt(dx * dx + dy * dy);
-
-        // If the vehicle is within the radius of 5 units, snap it to the node
-        if (distanceToNextNode <= 5.0f)
-        {
-            this->x = currentNodeToReach->x;
-            this->y = currentNodeToReach->y;
-        }
-        else
-        {
-            float directionX = dx / distanceToNextNode;
-            float directionY = dy / distanceToNextNode;
-
-            // Move the vehicle based on its speed and deltaTime
-            float moveDistance = this->speed * 1;
-            this->x += directionX * moveDistance;
-            this->y += directionY * moveDistance;
-        }
-    }
-};
 
 void DrawIntersectionCircles(int thickness, Color color, int X, int Y) {
     const int radius = 5;
@@ -493,8 +128,12 @@ void registerDriver() {
     cout << "Enter your years of experience: ";
     cin >> yearsOfExperience;
     cin.ignore();
+    cout << "Enter your vehicle type: (car/rickshaw/bike/truck)";
+    string vehicleType;
+    getline(cin, vehicleType);
 
-    Driver driver(age, name, email, true, phoneNumber, location, licenseNumber, yearsOfExperience);
+
+    Driver driver(age, name, email, true, phoneNumber, location, licenseNumber, yearsOfExperience, vehicleType);
 
     driver.saveDriver();
 
@@ -522,74 +161,48 @@ Driver signInDriver() {
     return driver;
 }
 
+ 
+// Find the nearest driver to the user
+struct DriverDistance {
+    Driver* driver;
+    float distance;
+
+    bool operator>(const DriverDistance& other) const {
+        return distance > other.distance;
+    }
+};
+
+std::priority_queue<DriverDistance, std::vector<DriverDistance>, std::greater<DriverDistance>> driverQueue;
+
+float calculateDistance(Node* node1, Node* node2) {
+    float dx = node1->x - node2->x;
+    float dy = node1->y - node2->y;
+    return sqrt(dx * dx + dy * dy);
+}
+
+Driver* findNearestDriver(Node* userLocation, const std::vector<Driver*>& drivers) {
+    std::priority_queue<DriverDistance, std::vector<DriverDistance>, std::greater<DriverDistance>> driverQueue;
+
+    for (Driver* driver : drivers) { 
+        if (driver->availability) { 
+            float distance = calculateDistance(userLocation, driver->currentLocation);
+            driverQueue.push({driver, distance});
+        }
+    }
+
+    if (!driverQueue.empty()) {
+        return driverQueue.top().driver;
+    }
+
+    return nullptr; // No available drivers
+}
+// end
 
 int main()
 {
-    User currentUser; // For storing the current user
-    Driver currentDriver; // For storing the current driver
-    bool exit = false;
-    do 
-    {
-        cout << "-----------------------------------\n";
-        cout << "Welcome to Driveby\n";
-        cout << "Please select an option:\n";
-        cout << "1. Register as a user\n";
-        cout << "2. Register as a driver\n";
-        cout << "3. Sign in as a user\n";
-        cout << "4. Sign in as a driver\n";
-        cout << "5. Exit the program\n";
-        cout << "-----------------------------------\n";
-        cout << "Enter your choice: ";
-        int choice;
-        cin >> choice;
-        cin.ignore();
-
-        switch (choice)
-        {
-        case 1:
-            cout << "Registering as a user...\n";
-            registerUser();
-            break;
-        case 2:
-            cout << "Registering as a driver...\n";
-            registerDriver();
-            break;
-        case 3:
-            cout << "Signing in as a user...\n";
-            currentUser = signInUser();
-            if (currentUser.email == "") {
-                cout << "User not found. Please register first." << endl;
-                break;
-            }
-            else {
-                cout << currentUser.email << " Logged in as User!" << endl;
-                currentUser.display();
-            }
-            exit = true;
-            break;
-        case 4:
-            cout << "Signing in as a driver...\n";
-            currentDriver = signInDriver();
-            if (currentDriver.email == "") {
-                cout << "Driver not found. Please register first." << endl;
-                break;
-            }
-            else {
-                cout << "Logged in as Driver!" << endl;
-                currentDriver.display();
-            }
-            exit = true;
-            break;
-        case 5:
-            cout << "Exiting the program...\n";
-            return 0;
-        default:
-            cout << "Invalid choice. Please try again.\n";
-        }
-    } while (!exit);
-
+    // Create city
+    // Seed the random number generator
     srand(static_cast<unsigned int>(time(0)));
-
 
     // Create nodes with names
     TrafficIntersection* node1Intersection = new TrafficIntersection(11, 1000, 800, "Clifton", 4);
@@ -703,6 +316,19 @@ int main()
     Vehicle v4(4, "Bike", node4, node18);
     Vehicle v5(5, "Truck", node21, node19);
 
+    // Creating drivers and assigning vehicles
+    Driver d1(25, "Ali", "ali@driver.com", true, "03001234567", "Clifton", "ABC123", 5, "Car");
+    Driver d2(30, "Ahmed", "ahmed@driver.com", true, "03123456789", "Saddar", "XYZ456", 3, "Rickshaw");
+    Driver d3(35, "Sara", "sara@driver.com", false, "03234567890", "Defence", "DEF789", 7, "Bike");
+    Driver d4(40, "John", "john@driver.com", true, "03345678901", "Gulshan", "GHI012", 4, "Truck");
+    Driver d5(45, "Maria", "maria@driver.com", false, "03456789012", "Korangi", "JKL345", 6, "Car");
+
+    d1.assignedVehicle = &v6;
+    d2.assignedVehicle = &v2;
+    d3.assignedVehicle = &v3;
+    d4.assignedVehicle = &v4;
+    d5.assignedVehicle = &v5;
+
     v6.speed = 0.4;
     v3.speed = 1.4;
     v5.speed = 0.2;
@@ -716,10 +342,16 @@ int main()
     vehicles.push_back(v4);
     vehicles.push_back(v5);
 
+    vector<Driver*> drivers; // For storing all drivers
+    drivers.push_back(&d1);
+    drivers.push_back(&d2);
+    drivers.push_back(&d3);
+    drivers.push_back(&d4);
+    drivers.push_back(&d5);
+
     /*Image image = LoadImage("car.png");
 
     Texture2D texture = LoadTextureFromImage(image);*/
-
 
     Vector2 buttonPosition = { 120, 950 };
     Vector2 buttonSize = { 150, 50 };
@@ -749,54 +381,7 @@ int main()
         edge->no_of_agents = edge->max_traffic-(rand()%6);
     }
 
-    
-
-    int choice;
-
-    std::cout << "Welcome to the Traffic Congestion Control System\n";
-
-    while (true) {
-        std::cout << "Please select the vehicle you are using:\n";
-        std::cout << "1. Rickshaw\n";
-        std::cout << "2. Car\n";
-        std::cout << "3. Bike\n";
-        std::cout << "4. Truck\n";
-        std::cout << "5. Bike\n";
-        std::cout << "Enter -1 to exit the program.\n";
-
-        std::cout << "Enter the number corresponding to your vehicle: ";
-        std::cin >> choice;
-
-        if (choice == -1) {
-            std::cout << "Exiting the program...\n";
-            return 0;
-            
-        }
-
-        if (choice >= 1 && choice <= 5) {
-            switch (choice) {
-            case 1:
-                std::cout << "You selected Rickshaw.\n";
-                break;
-            case 2:
-                std::cout << "You selected Car.\n";
-                break;
-            case 3:
-                std::cout << "You selected Bike.\n";
-                break;
-            case 4:
-                std::cout << "You selected Truck.\n";
-                break;
-            case 5:
-                std::cout << "You selected Other vehicle.\n";
-                break;
-            }
-            break;
-        }
-        else {
-            std::cout << "Invalid choice, please select a valid option.\n";
-        }
-    }
+    //cout << "Welcome to the Traffic Congestion Control System\n";
 
     const char* locations[] = {
         "JamshedTown", "GardenEast", "MemonSociety", "FederalBArea", "LalKothi",
@@ -810,46 +395,227 @@ int main()
     "Rickshaw", "Car", "Bike", "Truck", "Other"
     };
 
-    int start, end;
+    // User and driver registration and sign in
 
-    while (true) {
-        std::cout << "Please select a starting point (1-24):\n";
-        for (int i = 0; i < 24; i++) {
-            std::cout << (i + 1) << ". " << locations[i] << "\n";
+    User currentUser; // For storing the current user
+    Driver currentDriver; // For storing the current driver
+    bool exit = false;
+    do 
+    {
+        cout << "-----------------------------------\n";
+        cout << "Welcome to Driveby\n";
+        cout << "Please select an option:\n";
+        cout << "1. Register as a user\n";
+        cout << "2. Register as a driver\n";
+        cout << "3. Sign in as a user\n";
+        cout << "4. Sign in as a driver\n";
+        cout << "5. Exit the program\n";
+        cout << "-----------------------------------\n";
+        cout << "Enter your choice: ";
+        int choice;
+        cin >> choice;
+        cin.ignore();
+
+        switch (choice)
+        {
+        case 1:
+            cout << "Registering as a user...\n";
+            registerUser();
+            break;
+        case 2:
+            cout << "Registering as a driver...\n";
+            registerDriver();
+            break;
+        case 3:
+            cout << "Signing in as a user...\n";
+            currentUser = signInUser();
+            if (currentUser.email == "") {
+                cout << "User not found. Please register first." << endl;
+                break;
+            }
+            else {
+                cout << currentUser.email << " Logged in as User!" << endl;
+                currentUser.display();
+            }
+            exit = true;
+            break;
+        case 4:
+            cout << "Signing in as a driver...\n";
+            currentDriver = signInDriver();
+            if (currentDriver.email == "") {
+                cout << "Driver not found. Please register first." << endl;
+                break;
+            }
+            else {
+                cout << "Logged in as Driver!" << endl;
+                currentDriver.display();
+            }
+            exit = true;
+            break;
+        case 5:
+            cout << "Exiting the program...\n";
+            return 0;
+        default:
+            cout << "Invalid choice. Please try again.\n";
         }
+    } while (!exit);
 
-        std::cout << "Enter the number of your starting point: ";
-        std::cin >> start;
+    int vehicle;    // Vehicle to be used for ride
+    vector<Vehicle*> vehicles; // Vehicles available for the user
+    int start, end; // Starting and ending locations
 
-        std::cout << "Enter the number of your destination point (1-24): ";
-        std::cin >> end;
+    // Menu for user and driver options
+    if (currentUser.email != "") 
+    {
+        cout << "-----------------------------------\n";
+        cout << "Welcome " << currentUser.name << "!\n";
+        cout << "Please select an option:\n";
+        cout << "1. Request a ride\n";
+        cout << "2. View ride history\n";
+        cout << "3. Exit the program\n";
+        cout << "-----------------------------------\n";
+        cout << "Enter your choice: ";
+        int choice;
+        cin >> choice;
+        cin.ignore();
 
-        if (start < 1 || start > 24 || end < 1 || end > 24) {
-            std::cout << "Invalid input, please select numbers between 1 and 24.\n";
-            continue;
+        switch (choice)
+        {
+        case 1:
+            cout << "Requesting a ride...\n";
+            // Select vehicle
+            while (true) 
+            {
+                cout << "-----------------------------------\n";
+                cout << "Please select the vehicle you want to use:\n";
+                cout << "1. Rickshaw\n";
+                cout << "2. Car\n";
+                cout << "3. Bike\n";
+                cout << "4. Truck\n";
+                cout << "5. Other\n";
+                cout << "Enter -1 to exit the program.\n";
+                cout << "-----------------------------------\n";
+
+                cout << "Enter the number corresponding to your vehicle: ";
+                cin >> vehicle;
+                cin.ignore();
+
+                if (vehicle == -1) {
+                    cout << "Exiting the program...\n";
+                    return 0;
+                }
+
+                if (vehicle >= 1 && vehicle <= 5) {
+                    switch (vehicle) {
+                    case 1:
+                        cout << "Selected Rickshaw.\n";
+                        break;
+                    case 2:
+                        cout << "Selected Car.\n";
+                        break;
+                    case 3:
+                        cout << "Selected Bike.\n";
+                        break;
+                    case 4:
+                        cout << "Selected Truck.\n";
+                        break;
+                    case 5:
+                        cout << "Selected Other vehicle.\n";
+                        break;
+                    }
+                    break;
+                }
+                else {
+                    cout << "Invalid vehicle, please select a valid option.\n";
+                }
+            }
+            // Enter location
+            while (true) {
+                cout << "Please select a starting point (1-24):\n";
+                for (int i = 0; i < 24; i++) {
+                    cout << (i + 1) << ". " << locations[i] << "\n";
+                }
+
+                cout << "Enter the number of your starting point: ";
+                cin >> start;
+                cin.ignore();
+
+                cout << "Enter the number of your destination point (1-24): ";
+                cin >> end;
+                cin.ignore();
+
+                if (start < 1 || start > 24 || end < 1 || end > 24) {
+                    cout << "Invalid input, please select numbers between 1 and 24.\n";
+                    continue;
+                }
+
+                if (start == end) {
+                    cout << "Starting point and destination cannot be the same. Please try again.\n";
+                    continue;
+                }
+
+                cout << "You selected the starting point: " << locations[start - 1] << "\n";
+                cout << "You selected the destination point: " << locations[end - 1] << "\n";
+
+                break;
+            }
+            break;
+        case 2:
+            cout << "Viewing ride history...\n";
+            break;
+        case 3:
+            cout << "Exiting the program...\n";
+            return 0;
+        default:
+            cout << "Invalid choice. Please try again.\n";
         }
+    }
+    else if (currentDriver.email != "") {
+        cout << "-----------------------------------\n";
+        cout << "Welcome " << currentDriver.email << "!\n";
+        cout << "Please select an option:\n";
+        cout << "1. Accept a ride\n";
+        cout << "2. View ride history\n";
+        cout << "3. Exit the program\n";
+        cout << "-----------------------------------\n";
+        cout << "Enter your choice: ";
+        int choice;
+        cin >> choice;
+        cin.ignore();
 
-        if (start == end) {
-            std::cout << "Starting point and destination cannot be the same. Please try again.\n";
-            continue;
+        switch (choice)
+        {
+        case 1:
+            cout << "Accepting a ride...\n";
+            break;
+        case 2:
+            cout << "Viewing ride history...\n";
+            break;
+        case 3:
+            cout << "Exiting the program...\n";
+            return 0;
+        default:
+            cout << "Invalid choice. Please try again.\n";
         }
-
-        std::cout << "You selected the starting point: " << locations[start - 1] << "\n";
-        std::cout << "You selected the destination point: " << locations[end - 1] << "\n";
-
-        break;
     }
 
-    Vehicle mainVehicle(0, vehicleTypes[choice - 1], arrayOfNodes[start - 1], arrayOfNodes[end - 1]);
-    mainVehicle.color = ORANGE;
-    mainVehicle.speed = 0.9;
-    vehicles.push_back(mainVehicle);
 
 
+    Vehicle v1(0, vehicleTypes[vehicle - 1], arrayOfNodes[start - 1], arrayOfNodes[end - 1]);
+    v1.color = ORANGE;
+    v1.speed = 0.9;
+    vehicles.push_back(v1);
+    Driver d6(0, "Ali", "ali@driver.com", true, "03001234567", "Clifton", "ABC123", 5, "Car");
+    d6.assignedVehicle = &v1;
+    drivers.push_back(&d6);
 
-    InitWindow(1920, 1080, "Traffic Congestion System");
+    
+    
+    //Vehicle driverVehicle(0, currentDriver.vehicleType, arrayOfNodes[start - 1], arrayOfNodes[end - 1]);
 
-    Image trafficLight = LoadImage("C:\\Users\\verti\\Downloads\\traffic-light.png");  // Corrected path
+    InitWindow(1920, 1080, "Ride Sharing App");
+
+    Image trafficLight = LoadImage("src\\utils\\light.png");  // Corrected path
     Texture2D textureLight = LoadTextureFromImage(trafficLight);
 
     SetTargetFPS(60);
@@ -857,10 +623,9 @@ int main()
     int offsetY = -50;
     int i = 0;
 
-    while (!WindowShouldClose()) {
-
-
- /*   uniqueEdges.push_back(findEdge(node13, node20));*/
+    while (!WindowShouldClose()) 
+    {
+    /*  uniqueEdges.push_back(findEdge(node13, node20));*/
 
         i++;
         if (i == 100) {
@@ -895,7 +660,8 @@ int main()
         DrawText("Add car", buttonPosition.x + 37, buttonPosition.y + 15, 20, BLACK);
 
         // Display the result of button press
-        if (buttonPressed) {
+        if (buttonPressed) 
+        {
             int k = rand() % 24;
             int j = k;
             while (j == k) {
@@ -907,22 +673,25 @@ int main()
         }
 
         
-        for (Node* node: arrayOfNodes) {
+        for (Node* node: arrayOfNodes) 
+        {
             DrawCircle(node->x+offsetX, node->y+ offsetY , 5, RED);
             const char* name = node->name.c_str();
             DrawText(name, node->x + offsetX-30, node->y + offsetY-20, 20, BLACK);
         }
-        for (Edge* edge : uniqueEdges) {
+        for (Edge* edge : uniqueEdges) 
+        {
             DrawLine(edge->node1->x + offsetX, edge->node1->y + offsetY, edge->node2->x+ offsetX, edge->node2->y + offsetY, RED);
             float midpointX = (edge->node1->x + edge->node2->x) / 2.0f;
             float midpointY = (edge->node1->y + edge->node2->y) / 2.0f;
-            string congestionString =  std::to_string(edge->no_of_agents);
+            string congestionString =  to_string(edge->no_of_agents);
             const char* congestion = congestionString.c_str();
             DrawText(congestion, midpointX + offsetX, midpointY + offsetY-20, 25, BLUE);
             
         }
         
-        for (Vehicle& v1 : vehicles) {
+        for (Vehicle& v1 : vehicles) 
+        {
             if(v1.hasReachedDestination==false){
                 DrawRectangle(v1.x + offsetX, v1.y + offsetY, 25, 30, v1.color);
                 /*DrawTextureEx(texture, Vector2 { v1.x + offsetX, v1.y + offsetY }, 0.0, 0.1, WHITE);*/
@@ -971,8 +740,6 @@ int main()
         EndDrawing();
     }
     CloseWindow();
-
-    
 
     /*Vehicle v1(1, "Rickshaw", node1, node5);
     Vehicle v2(2, "motor", node2, node4);

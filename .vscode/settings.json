@@ -65,6 +65,12 @@
         "streambuf": "cpp",
         "text_encoding": "cpp",
         "typeinfo": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "any": "cpp",
+        "codecvt": "cpp",
+        "map": "cpp",
+        "fstream": "cpp",
+        "ranges": "cpp",
+        "valarray": "cpp"
     }
 }
