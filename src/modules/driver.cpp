@@ -5,9 +5,9 @@
 // Driver class inheriting from Person
 
 Driver::Driver() : Person(), licenseNumber(""), yearsOfExperience(0), averageRating(0.0), numberOfRidesCompleted(0), availability(true) {}
-Driver::Driver(int age, string name, string email, bool gender, string phoneNumber, string licenseNumber, int yearsOfExperience, string vehicleType, Node* currentLocation) 
+Driver::Driver(int age, string name, string email, bool gender, string phoneNumber, string licenseNumber, int yearsOfExperience, string vehicleType) 
     : Person(age, name, email, gender, phoneNumber), licenseNumber(licenseNumber), yearsOfExperience(yearsOfExperience),
-        averageRating(0.0), numberOfRidesCompleted(0), availability(true), assignedVehicle(nullptr), vehicleType(vehicleType), currentLocation(currentLocation) {}
+        averageRating(0.0), numberOfRidesCompleted(0), availability(true), assignedVehicle(nullptr), vehicleType(vehicleType) {}
 
 void Driver::setLicenseNumber(string newLicenseNumber) { licenseNumber = newLicenseNumber; }
 void Driver::setYearsOfExperience(int newYearsOfExperience) { yearsOfExperience = newYearsOfExperience; }
@@ -19,8 +19,12 @@ void Driver::acceptRide(const User& user)
     {
         availability = false;
         cout << "Driver " << name << " accepted the ride for " << user.name << "." << endl;
-        assignedVehicle->goalNode = user.currentLocation;
-        assignedVehicle->path = aStar(currentLocation, user.currentLocation);
+        this->assignedVehicle->color = ORANGE; // Change vehicle color to orange
+        this->assignedVehicle->goalNode = user.currentLocation; // Set goal node to user's current location
+        this->assignedVehicle->userGoalNode = user.goalLocation; // Set user's goal location
+
+        // Compute path from vehicle's current location to user's location, then to user's goal location
+        assignedVehicle->path = aStar(assignedVehicle->currentNode, user.goalLocation, user.currentLocation); // Compute path
     } 
     else 
     {
@@ -49,6 +53,7 @@ void Driver::display() const
 {
     Person::display();
     cout << "License Number: " << licenseNumber << endl;
+    cout << "Vehicle Type: " << vehicleType << endl;
     cout << "Years of Experience: " << yearsOfExperience << endl;
     cout << "Number of Rides Completed: " << numberOfRidesCompleted << endl;
     cout << "Average Rating: " << averageRating << endl;

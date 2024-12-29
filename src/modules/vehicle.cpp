@@ -3,11 +3,16 @@
 string Vehicle::vehicleTypes[4] = {"Car", "Truck", "Bus", "Bike"};
 
 // Constructor
-Vehicle::Vehicle(int id, string type, Node* startNode, Node* goalNode)
-    : id(id), type(type), currentNode(startNode), goalNode(goalNode), currentEdge(nullptr), x(startNode->x), y(startNode->y)
+Vehicle::Vehicle(int id, string type, Node* startNode, Node* goalNode, vector<Node*> nodes)
+    : id(id), type(type), currentNode(startNode), goalNode(goalNode), currentEdge(nullptr), x(startNode->x), y(startNode->y), userGoalNode(nodes[rand() % nodes.size()])
 {
     // Initialize the path using A* search
-    this->path = aStar(currentNode, this->goalNode);
+    while (userGoalNode == currentNode || userGoalNode == goalNode)
+    {
+        userGoalNode = nodes[rand() % nodes.size()];
+    }
+    cout << "Called A* search on vehicle" << id << endl;
+    this->path = aStar(currentNode, goalNode, userGoalNode);
     if (this->path.empty())
     {
         cerr << "No path found for the vehicle from start to goal." << endl;
@@ -32,10 +37,18 @@ Vehicle::Vehicle(int id, string type, Node* startNode, Node* goalNode)
 
 // constructor with random start and goal nodes if not provided
 Vehicle::Vehicle(int id, string type, vector<Node*> nodes)
-    : id(id), type(type), currentNode(nodes[rand() % nodes.size()]), goalNode(nodes[rand() % nodes.size()]), currentEdge(nullptr), x(currentNode->x), y(currentNode->y)
+    : id(id), type(type), currentNode(nodes[rand() % nodes.size()]), goalNode(nodes[rand() % nodes.size()]), userGoalNode(nodes[rand() % nodes.size()]), currentEdge(nullptr), x(currentNode->x), y(currentNode->y)
 {
+    while (userGoalNode == currentNode || userGoalNode == goalNode)
+    {
+        userGoalNode = nodes[rand() % nodes.size()];
+    }
+    while (goalNode == currentNode || goalNode == userGoalNode)
+    {
+        goalNode = nodes[rand() % nodes.size()];
+    }
     // Initialize the path using A* search
-    this->path = aStar(currentNode, this->goalNode);
+    this->path = aStar(currentNode, userGoalNode, goalNode);
     if (this->path.empty())
     {
         cerr << "No path found for the vehicle from start to goal." << endl;
@@ -79,7 +92,7 @@ void Vehicle::setLengthByType()
 bool Vehicle::moveVehicle()
 {
     // If the vehicle has reached its goal
-    if (this->x == goalNode->x && this->y == goalNode->y)
+    if (this->x == userGoalNode->x && this->y == userGoalNode->y)
     {
         if (currentEdge)
         {
@@ -94,7 +107,7 @@ bool Vehicle::moveVehicle()
     {
         if (this->path.empty())
         {
-            this->path = aStar(currentNode, this->goalNode); // Recompute the path if necessary
+            this->path = aStar(currentNode, this->goalNode, userGoalNode); // Recompute the path if necessary
             if (this->path.empty())
             {
                 cerr << "No path found to the goal!" << endl;
@@ -182,5 +195,31 @@ void Vehicle::changeCoordinates()
         // Move based on speed
         this->x += directionX * speed;
         this->y += directionY * speed;
+    }
+}
+
+// Update destination
+void Vehicle::updateDestination(Node* nextDestination)
+{
+    this->goalNode = nextDestination;
+    this->hasReachedDestination = false;
+    this->path = aStar(currentNode, this->goalNode, userGoalNode);
+    if (this->path.empty())
+    {
+        cerr << "No path found for the vehicle from start to goal." << endl;
+        return;
+    }
+
+    this->currentEdge = this->path.front();
+    this->path.erase(this->path.begin());
+
+    // Set the next node to reach
+    if (currentEdge->node1 == currentNode)
+    {
+        this->currentNodeToReach = currentEdge->node2;
+    }
+    else
+    {
+        this->currentNodeToReach = currentEdge->node1;
     }
 }

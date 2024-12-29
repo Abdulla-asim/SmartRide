@@ -10,15 +10,15 @@ User::User(int age, string name, string email, bool gender, string phoneNumber)
 
 User::User() : Person(), rideStatus("None") {}
 
-bool User::requestRide(Node* currentLocation) 
+bool User::requestRide(Node* currentLocation, Node* goalLocation) 
 {
-    if (rideStatus == "None") 
-    {   // Request if not already requested
-        rideStatus = "Requested";
-        currentLocation = currentLocation;
-        return true;                // return true
-    }
-    return false; // User is Active or has Already Requested
+    rideStatus = "Requested";
+    this->currentLocation = currentLocation;
+    this->goalLocation = goalLocation;
+
+    cout << "--- Ride Request ---" << endl;
+    cout << "Ride requested from " << currentLocation->name << " to " << goalLocation->name << endl;
+    return true;                // return true
 }
 
 void User::setRideStatus(string newRideStatus) { rideStatus = newRideStatus; }

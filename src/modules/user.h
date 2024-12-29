@@ -9,11 +9,12 @@ class User : public Person {
 public: 
     string rideStatus; // None, Requested, Active
     Node* currentLocation;
+    Node* goalLocation;
 
     User();
     User(int age, string name, string email, bool gender, string phoneNumber);
 
-    bool requestRide(Node* currentLocation);
+    bool requestRide(Node* currentLocation, Node* goalLocation);
 
     void setRideStatus(string newRideStatus);
 

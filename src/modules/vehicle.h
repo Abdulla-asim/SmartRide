@@ -8,7 +8,7 @@
 
 using namespace std;
 
-vector<Edge*> aStar(Node* start, Node* goal);
+vector<Edge*> aStar(Node* start, Node* mid, Node* goal);
 
 class Vehicle
 {
@@ -25,13 +25,15 @@ public:
     float speed = 0.7;         // Speed of the vehicle
     Node* currentNodeToReach;  // Node the vehicle is currently heading toward
     bool hasReachedDestination = false; // Destination reached status
+    bool pickingUp = false;    // Picking up a passenger status
+    Node* userGoalNode;        // Goal node for the user
     Color color = BLUE;        // Color of the vehicle
 
     // Vehicle types
     static string vehicleTypes[4];
 
     // Constructor
-    Vehicle(int id, string type, Node* startNode, Node* goalNode);
+    Vehicle(int id, string type, Node* startNode, Node* goalNode, vector<Node*> nodes);
     Vehicle(int id, string type, vector<Node*> nodes);
 
 
@@ -46,6 +48,9 @@ public:
 
     // Move the vehicle's coordinates
     void changeCoordinates();
+
+    // Update destination
+    void updateDestination(Node* nextDestination);
 };
 
 #endif

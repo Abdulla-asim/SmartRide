@@ -6,7 +6,7 @@
 #include "vehicle.h"
 #include <vector>
 
-vector<Edge*> aStar(Node* start, Node* goal);
+vector<Edge*> aStar(Node* start,Node* mid, Node* goal);
 
 // Driver class inheriting from Person
 class Driver : public Person 
@@ -19,11 +19,10 @@ public:
     vector<double> ratings;
     bool availability;
     string vehicleType;
-    Node* currentLocation;
     Vehicle* assignedVehicle;
 
     Driver();
-    Driver(int age, string name, string email, bool gender, string phoneNumber, string licenseNumber, int yearsOfExperience, string vehicleType, Node* currentLocation);   
+    Driver(int age, string name, string email, bool gender, string phoneNumber, string licenseNumber, int yearsOfExperience, string vehicleType);   
 
     void setLicenseNumber(string newLicenseNumber);
     void setYearsOfExperience(int newYearsOfExperience);
