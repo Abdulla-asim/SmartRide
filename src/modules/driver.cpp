@@ -4,32 +4,63 @@
 
 // Driver class inheriting from Person
 
-Driver::Driver() : Person(), licenseNumber(""), yearsOfExperience(0), averageRating(0.0), numberOfRidesCompleted(0), availability(true) {}
-Driver::Driver(int age, string name, string email, bool gender, string phoneNumber, string licenseNumber, int yearsOfExperience, string vehicleType) 
+Driver::Driver() : Person(), licenseNumber(""), yearsOfExperience(0), averageRating(0.0), numberOfRidesCompleted(0), availability(true), currentNode(nullptr) {}
+
+Driver::Driver(vector<Node*> nodes) : Person(), licenseNumber(""), yearsOfExperience(0), averageRating(0.0), numberOfRidesCompleted(0), availability(true), currentNode(nodes[rand() % nodes.size()]) {}
+
+Driver::Driver(int age, string name, string email, bool gender, string phoneNumber, string licenseNumber, int yearsOfExperience, string vehicleType, Node* currentNode) 
     : Person(age, name, email, gender, phoneNumber), licenseNumber(licenseNumber), yearsOfExperience(yearsOfExperience),
-        averageRating(0.0), numberOfRidesCompleted(0), availability(true), assignedVehicle(nullptr), vehicleType(vehicleType) {}
+        averageRating(0.0), numberOfRidesCompleted(0), availability(true), assignedVehicle(nullptr), vehicleType(vehicleType), currentNode(currentNode) {}
 
 void Driver::setLicenseNumber(string newLicenseNumber) { licenseNumber = newLicenseNumber; }
 void Driver::setYearsOfExperience(int newYearsOfExperience) { yearsOfExperience = newYearsOfExperience; }
 void Driver::setAvailability(bool newAvailability) { availability = newAvailability; }
 
-void Driver::acceptRide(const User& user) 
+Vehicle* Driver::acceptRide(const User& user) 
 {
     if (availability && user.rideStatus == "Requested") 
     {
         availability = false;
         cout << "Driver " << name << " accepted the ride for " << user.name << "." << endl;
-        this->assignedVehicle->color = ORANGE; // Change vehicle color to orange
-        this->assignedVehicle->goalNode = user.currentLocation; // Set goal node to user's current location
-        this->assignedVehicle->userGoalNode = user.goalLocation; // Set user's goal location
 
+        Vehicle* vehicle = new Vehicle(0, vehicleType, currentNode, user.currentLocation);
+        vehicle->color = ORANGE; // Change vehicle color to orange
+        vehicle->userGoalNode = user.goalLocation; // Set user's goal location
+        assignedVehicle = vehicle;
+
+        return vehicle;
         // Compute path from vehicle's current location to user's location, then to user's goal location
-        assignedVehicle->path = aStar(assignedVehicle->currentNode, user.goalLocation, user.currentLocation); // Compute path
+        // assignedVehicle->path = aStar(assignedVehicle->currentNode, assignedVehicle->goalNode); // Compute path
     } 
     else 
     {
         cout << "Driver unavailable or invalid ride request!" << endl;
     }
+    return nullptr;
+}
+
+Vehicle* Driver::startRide(const User& user) 
+{
+    if (availability) 
+    {
+        availability = false;
+        cout << "Driver " << name << " accepted the ride for " << user.name << "." << endl;
+
+        Vehicle* vehicle = new Vehicle(0, vehicleType, user.currentLocation, user.goalLocation);
+        vehicle->color = ORANGE; // Change vehicle color to orange
+        vehicle->userGoalNode = user.goalLocation; // Set user's goal location
+        assignedVehicle = vehicle;
+        reachedDestination = true;
+
+        return vehicle;
+        // Compute path from vehicle's current location to user's location, then to user's goal location
+        // assignedVehicle->path = aStar(assignedVehicle->currentNode, assignedVehicle->goalNode); // Compute path
+    } 
+    else 
+    {
+        cout << "Driver unavailable or invalid ride request!" << endl;
+    }
+    return nullptr;
 }
 
 void Driver::takeRating(double newRating) 
@@ -63,7 +94,8 @@ void Driver::display() const
 
 using json = nlohmann::json;
 
-void Driver::saveDriver() const {
+void Driver::saveDriver() const 
+{
     std::ifstream inputFile("drivers.json");
     json driversJson;
 
@@ -79,18 +111,43 @@ void Driver::saveDriver() const {
         driversJson = json::array();
     }
 
-    json driverJson = {
-        {"name", name},
-        {"email", email},
-        {"gender", gender},
-        {"phone", phoneNumber},
-        {"age", age},
-        {"vehicleType", vehicleType},
-        {"licenseNumber", licenseNumber},
-        {"yearsOfExperience", yearsOfExperience}
-    };
+    // Check if the driver already exists in the JSON array
+    bool driverExists = false;
+    for (auto& item : driversJson) {
+        if (item["email"] == email) {
+            // Update existing driver information
+            item["name"] = name;
+            item["gender"] = gender;
+            item["phone"] = phoneNumber;
+            item["age"] = age;
+            item["vehicleType"] = vehicleType;
+            item["licenseNumber"] = licenseNumber;
+            item["yearsOfExperience"] = yearsOfExperience;
+            item["averageRating"] = averageRating;
+            item["numberOfRidesCompleted"] = numberOfRidesCompleted;
+            item["availability"] = availability;
+            driverExists = true;
+            break;
+        }
+    }
 
-    driversJson.push_back(driverJson);
+    // If the driver does not exist, add a new entry
+    if (!driverExists) {
+        json driverJson = {
+            {"name", name},
+            {"email", email},
+            {"gender", gender},
+            {"phone", phoneNumber},
+            {"age", age},
+            {"vehicleType", vehicleType},
+            {"licenseNumber", licenseNumber},
+            {"yearsOfExperience", yearsOfExperience},
+            {"averageRating", averageRating},
+            {"numberOfRidesCompleted", numberOfRidesCompleted},
+            {"availability", availability}
+        };
+        driversJson.push_back(driverJson);
+    }
 
     std::ofstream outputFile("drivers.json");
     if (outputFile.is_open()) {

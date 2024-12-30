@@ -8,7 +8,7 @@
 
 using namespace std;
 
-vector<Edge*> aStar(Node* start, Node* mid, Node* goal);
+vector<Edge*> aStar(Node* start, Node* goal);
 
 class Vehicle
 {
@@ -33,7 +33,7 @@ public:
     static string vehicleTypes[4];
 
     // Constructor
-    Vehicle(int id, string type, Node* startNode, Node* goalNode, vector<Node*> nodes);
+    Vehicle(int id, string type, Node* startNode, Node* goalNode);
     Vehicle(int id, string type, vector<Node*> nodes);
 
 
@@ -42,6 +42,7 @@ public:
 
     // Move the vehicle
     bool moveVehicle();
+    void moveToNextNode();
 
     // Update the number of agents on an edge
     void updateEdgeAgentCount(Edge* edge, int delta);

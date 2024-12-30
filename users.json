@@ -1,9 +1,8 @@
 [
     {
         "age": 20,
-        "email": "abdullah.asim901@gmail.com",
+        "email": "ab",
         "gender": true,
-        "location": "NUST",
         "name": "Abdullah Asim",
         "phone": "03275883747"
     },
@@ -11,8 +10,14 @@
         "age": 21,
         "email": "mueed@example.com",
         "gender": "true",
-        "location": "NUST",
         "name": "Abdul Mueed",
         "phone": "03247854965"
+    },
+    {
+        "age": 21,
+        "email": "rohail@user.com",
+        "gender": true,
+        "name": "rohail",
+        "phone": "03214587498"
     }
 ]

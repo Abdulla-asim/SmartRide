@@ -15,11 +15,10 @@
 
 using namespace std;
 
-Driver* createRandomDriver(string ,string ,string , bool ,string ,int ,int);
-vector<Edge*> findPath(Node* start, Node* goal);
-vector<Edge*> reconstructPath(const unordered_map<Node*, Node*>& cameFrom, Node* current);
-
 vector<Node*> arrayOfNodes;
+
+Driver* createRandomDriver(int age, string name, string email, bool gender, string phoneNumber, string licenseNumber, int yearsOfExperience, string vehicleType);
+
 
 // // A* Algorithm to find the path
 // vector<Edge*> aStar(Node* start,Node* mid, Node* goal) {
@@ -71,43 +70,18 @@ vector<Node*> arrayOfNodes;
 
 
 
-vector<Edge*> aStar(Node* start, Node* goal, Node* midNode = nullptr) {
+
+vector<Edge*> aStar(Node* start, Node* goal) {
     if (!start || !goal) {
         cout << "Error: Invalid start or goal node!" << endl;
         return {};
     }
 
-    if (midNode) {
-        // Find path from start to midNode
-        vector<Edge*> pathToMid = findPath(start, midNode);
-        if (pathToMid.empty()) {
-            cout << "Error: No valid path from start to midNode!" << endl;
-            return {};
-        }
-
-        // Find path from midNode to goal
-        vector<Edge*> pathToGoal = findPath(midNode, goal);
-        if (pathToGoal.empty()) {
-            cout << "Error: No valid path from midNode to goal!" << endl;
-            return {};
-        }
-
-        // Combine paths, avoiding duplicate midNode
-        pathToMid.insert(pathToMid.end(), pathToGoal.begin(), pathToGoal.end());
-        return pathToMid;
-    } else {
-        // Original single-path A* implementation
-        return findPath(start, goal);
-    }
-}
-
-// Helper function to implement the core A* logic
-vector<Edge*> findPath(Node* start, Node* goal) {
     using QueueElement = pair<float, Node*>; // {f_score, Node*}
     priority_queue<QueueElement, vector<QueueElement>, greater<>> openSet;
 
     unordered_map<Node*, float> gScore;
-    unordered_map<Node*, Node*> cameFrom;
+    unordered_map<Node*, Edge*> cameFromEdge;
     unordered_map<Node*, float> fScore;
 
     gScore[start] = 0;
@@ -119,60 +93,36 @@ vector<Edge*> findPath(Node* start, Node* goal) {
         openSet.pop();
 
         if (current == goal) {
-            return reconstructPath(cameFrom, current);
+            // Goal found, reconstruct path
+            vector<Edge*> path;
+            while (cameFromEdge.find(current) != cameFromEdge.end()) {
+                Edge* edge = cameFromEdge[current];
+                path.push_back(edge);
+                current = (edge->node1 == current) ? edge->node2 : edge->node1;
+            }
+            reverse(path.begin(), path.end());
+            return path; // Return the full path as a vector of edges
         }
 
-        for (Edge* edge : current->edges) {
-            Node* neighbor = (edge->node1 == current) ? edge->node2 : edge->node1;
+        // Explore neighbors
+        for (size_t i = 0; i < current->neighbors.size(); ++i) {
+            Node* neighbor = current->neighbors[i];
+            Edge* edge = current->edges[i];
             float tentative_gScore = gScore[current] + Node::cost(current, neighbor);
 
             if (!gScore.count(neighbor) || tentative_gScore < gScore[neighbor]) {
-                cameFrom[neighbor] = current;
+                cameFromEdge[neighbor] = edge;
                 gScore[neighbor] = tentative_gScore;
-                fScore[neighbor] = gScore[neighbor] + Node::heuristic(neighbor, goal);
-                openSet.push({ fScore[neighbor], neighbor });
+                float fScore = tentative_gScore + Node::heuristic(neighbor, goal);
+                openSet.push({ fScore, neighbor });
             }
         }
     }
 
+    // If we reach here, no path was found
     cout << "Error: No path found from " << start->id << " to " << goal->id << "!" << endl;
-    return {};
+    return {}; // Return an empty path if no path exists
 }
-
-vector<Edge*> reconstructPath(const unordered_map<Node*, Node*>& cameFrom, Node* current) {
-    vector<Edge*> path;
-
-    while (cameFrom.find(current) != cameFrom.end()) {
-        Node* previous = cameFrom.at(current);
-
-        // Find the edge connecting previous to current
-        Edge* connectingEdge = nullptr;
-        for (Edge* edge : previous->edges) {
-            if (edge->node2 == current || edge->node1 == current) {
-                connectingEdge = edge;
-                break;
-            }
-        }
-
-        if (!connectingEdge) {
-            cout << "Error: No connecting edge found between nodes!" << endl;
-            return {};
-        }
-
-        path.push_back(connectingEdge);
-
-        // Move to the previous node
-        current = previous;
-    }
-
-    // Reverse the path because we constructed it from goal to start
-    reverse(path.begin(), path.end());
-    return path;
-}
-
-
-
-
 
 
 
@@ -241,7 +191,7 @@ void registerDriver() {
     cout << "Enter your years of experience: ";
     cin >> yearsOfExperience;
     cin.ignore();
-    cout << "Enter your vehicle type: (car/rickshaw/bike/truck)";
+    cout << "Enter your vehicle type: (car/rickshaw/bike/Bus)";
     string vehicleType;
     getline(cin, vehicleType);
 
@@ -250,7 +200,7 @@ void registerDriver() {
     else 
         gender = true;  // Male
 
-    Driver* driver = createRandomDriver(name, email, phoneNumber, gender, licenseNumber, age, yearsOfExperience);
+    Driver* driver = createRandomDriver(age, name, email, gender, phoneNumber, licenseNumber, yearsOfExperience, vehicleType);
 
     driver->saveDriver();
 
@@ -289,6 +239,7 @@ struct DriverDistance {
     }
 };
 
+
 // std::priority_queue<DriverDistance, std::vector<DriverDistance>, std::greater<DriverDistance>> driverQueue;
 
 float calculateDistance(Node* node1, Node* node2) {
@@ -314,13 +265,12 @@ Driver* findNearestDriver(Node* userLocation, const std::vector<Driver*>& driver
     return nullptr; // No available drivers
 }
 
-
-// Create random driver
-Driver* createRandomDriver(string name,string email,string phoneNumber, bool is_male,string licenseNumber,int age,int yearsOfExperience) 
-{
-    string vehicleType = Vehicle::vehicleTypes[rand() % 4]; // Random vehicle type
-
-    return new Driver(age, name, email, is_male, phoneNumber, licenseNumber, yearsOfExperience, vehicleType);
+// create random driver
+Driver* createRandomDriver(int age, string name, string email, bool gender, string phoneNumber, string licenseNumber, int yearsOfExperience, string vehicleType) {
+    Node* currentNode = arrayOfNodes[rand() % arrayOfNodes.size()];
+    Driver * driver = new Driver(age, name, email, gender, phoneNumber, licenseNumber, yearsOfExperience, vehicleType, currentNode);
+    driver->saveDriver();
+    return driver;
 }
 
 // Create random vehicle
@@ -328,7 +278,7 @@ Vehicle createRandomVehicle(const std::vector<Node*>& nodes)
 {
     Node* currentLocation = nodes[rand() % nodes.size()];
     string vehicleType = Vehicle::vehicleTypes[rand() % 4]; // Random vehicle type
-    return Vehicle(rand() % 1000, vehicleType, nodes);
+    return Vehicle(rand() % 1000 + 1, vehicleType, nodes);
 }
 
 
@@ -444,30 +394,32 @@ int main()
     };
 
 
-    Vehicle v6(1, "Car", node11, node1, arrayOfNodes);
-    Vehicle v2(2, "Rickshaw", node13, node24, arrayOfNodes);
-    Vehicle v3(3, "Bike", node15, node2, arrayOfNodes);
-    Vehicle v4(4, "Truck", node4, node18, arrayOfNodes);
-    Vehicle v5(5, "Car", node21, node19, arrayOfNodes);
+    Vehicle v6(1, "Car", node11, node1);
+    Vehicle v2(2, "Rickshaw", node13, node24);
+    Vehicle v3(3, "Bike", node15, node2);
+    Vehicle v4(4, "Bus", node4, node18);
+    Vehicle v5(5, "Car", node21, node19);
 
     // Creating drivers and assigning vehicles
-    Driver d1(25, "Ali", "ali@driver.com", true, "03001234567", "ABC123", 5, "Car");
-    Driver d2(30, "Ahmed", "ahmed@driver.com", true, "03123456789", "XYZ456", 3, "Rickshaw");
-    Driver d3(35, "Sara", "sara@driver.com", false, "03234567890", "DEF789", 7, "Bike");
-    Driver d4(40, "John", "john@driver.com", true, "03345678901", "GHI012", 4, "Truck");
-    Driver d5(45, "Maria", "maria@driver.com", false, "03456789012", "JKL345", 6, "Car");
 
-    d1.assignedVehicle = &v6;
-    d2.assignedVehicle = &v2;
-    d3.assignedVehicle = &v3;
-    d4.assignedVehicle = &v4;
-    d5.assignedVehicle = &v5;
+    Driver* d1 = createRandomDriver(25, "Ali", "ali@driver.com", true, "03001234567", "ABC123", 5, "Car");
+    Driver* d2 = createRandomDriver(30, "Ahmed", "ahmed@driver.com", true, "03123456789", "XYZ456", 3, "Rickshaw");
+    Driver* d3 = createRandomDriver(35, "Sara", "sara@driver.com", false, "03234567890", "DEF789", 7, "Bike");
+    Driver* d4 = createRandomDriver(40, "John", "john@driver.com", true, "03345678901", "GHI012", 4, "Bus");
+    Driver* d5 = createRandomDriver(45, "Maria", "maria@driver.com", false, "03456789012", "JKL345", 6, "Car");
 
-    v6.speed = 0.4;
-    v3.speed = 1.4;
-    v5.speed = 0.2;
-    v2.speed = 0.8;
-    v5.speed = 0.3;
+
+    d1->assignedVehicle = &v6;
+    d2->assignedVehicle = &v2;
+    d3->assignedVehicle = &v3;
+    d4->assignedVehicle = &v4;
+    d5->assignedVehicle = &v5;
+
+    v6.speed = 0.7;
+    v2.speed = 1.4;
+    v3.speed = 0.9;
+    v4.speed = 0.2;
+    v5.speed = 0.7;
 
     vector<Vehicle> vehicles;
     vehicles.push_back(v6);
@@ -477,11 +429,11 @@ int main()
     vehicles.push_back(v5);
 
     vector<Driver*> drivers; // For storing all drivers
-    drivers.push_back(&d1);
-    drivers.push_back(&d2);
-    drivers.push_back(&d3);
-    drivers.push_back(&d4);
-    drivers.push_back(&d5);
+    drivers.push_back(d1);
+    drivers.push_back(d2);
+    drivers.push_back(d3);
+    drivers.push_back(d4);
+    drivers.push_back(d5);
 
     /*Image image = LoadImage("car.png");
 
@@ -526,7 +478,7 @@ int main()
     };
 
     const char* vehicleTypes[] = {
-    "Rickshaw", "Car", "Bike", "Truck", "Other"
+    "Rickshaw", "Car", "Bike", "Bus"
     };
 
     // User and driver registration and sign in
@@ -600,6 +552,8 @@ int main()
     // Menu for user and driver options
     if (currentUser.email != "") 
     {
+        while (true)
+        {
         cout << "-----------------------------------\n";
         cout << "Welcome " << currentUser.name << "!\n";
         cout << "Please select an option:\n";
@@ -624,8 +578,7 @@ int main()
                 cout << "1. Rickshaw\n";
                 cout << "2. Car\n";
                 cout << "3. Bike\n";
-                cout << "4. Truck\n";
-                cout << "5. Other\n";
+                cout << "4. Bus\n";
                 cout << "Enter -1 to exit the program.\n";
                 cout << "-----------------------------------\n";
 
@@ -638,7 +591,7 @@ int main()
                     return 0;
                 }
 
-                if (vehicle >= 1 && vehicle <= 5) {
+                if (vehicle >= 1 && vehicle <= 4) {
                     switch (vehicle) {
                     case 1:
                         cout << "Selected Rickshaw.\n";
@@ -650,10 +603,7 @@ int main()
                         cout << "Selected Bike.\n";
                         break;
                     case 4:
-                        cout << "Selected Truck.\n";
-                        break;
-                    case 5:
-                        cout << "Selected Other vehicle.\n";
+                        cout << "Selected Bus.\n";
                         break;
                     }
                     break;
@@ -690,6 +640,232 @@ int main()
                 cout << "You selected the starting point: " << locations[start - 1] << "\n";
                 cout << "You selected the destination point: " << locations[end - 1] << "\n";
 
+                Vehicle v1(12, vehicleTypes[vehicle - 1], arrayOfNodes);
+                Driver* d6 = createRandomDriver(27, "Arham", "arham@driver.com", true, "03001234567", "ABC123", 10, vehicleTypes[vehicle - 1]);
+                // v1.color = ORANGE;
+                v1.speed = 0.9;
+                vehicles.push_back(v1);
+                d6->assignedVehicle = &v1;
+                drivers.push_back(d6);
+
+
+                Driver* nearestDriver = findNearestDriver(arrayOfNodes[start - 1], drivers, vehicleTypes[vehicle - 1]);
+                if (nearestDriver != nullptr) 
+                {
+                char choice;
+                cout << "Nearest driver found: " << nearestDriver->name << endl;
+                nearestDriver->display();
+                cout << "Do you want to request the ride? (Y/N): ";
+                cin >> choice;
+                cin.ignore();
+                if (choice == 'Y' || choice == 'y') {
+                    currentUser.requestRide(arrayOfNodes[start - 1], arrayOfNodes[end - 1]);
+                }
+                }
+                else 
+                {
+                cout << "No drivers available at the moment." << endl;
+                }
+
+                Vehicle* nearestVehicle = nearestDriver->acceptRide(currentUser);
+                vehicles.push_back(*nearestVehicle);
+                // nearestDriver->assignedVehicle->color = ORANGE;
+                cout << "Ride color changed for " << nearestDriver->assignedVehicle->type << endl;
+
+                if (nearestDriver->assignedVehicle->goalNode == nullptr) {
+                cout << "goal node is null" << endl;
+                }
+                if (nearestDriver->assignedVehicle->userGoalNode == nullptr) {
+                cout << "user goal node is null" << endl;
+                }
+
+                cout << "path of driver: " << nearestDriver->assignedVehicle->currentNode->name << " to " << nearestDriver->assignedVehicle->goalNode->name << " to " << nearestDriver->assignedVehicle->userGoalNode->name << endl;
+
+
+
+
+                // Raylib window
+                InitWindow(1920, 1080, "Ride Sharing App");
+
+                Image trafficLight = LoadImage("src\\utils\\light.png");
+                Texture2D textureLight = LoadTextureFromImage(trafficLight);
+
+                SetTargetFPS(60);
+                int offsetX = -37;
+                int offsetY = -50;
+                int i = 0;
+
+                Vehicle* newVehicle = nullptr;
+                while (!WindowShouldClose()) {
+                i++;
+                if (i == 100) {
+                    for (TrafficIntersection* intersection : intersections) {
+                        intersection->changeLights();
+                    }
+                    i = 0;
+                }
+                BeginDrawing();
+                ClearBackground(RAYWHITE);
+
+                // Draw the traffic lights
+                for (TrafficIntersection* intersection : intersections) {
+                    DrawTextureEx(textureLight, Vector2{ intersection->x + offsetX -20, intersection->y + offsetY + 5 }, 0.0f, 0.09, WHITE);
+                }
+
+                // Check mouse and button interactions
+                Vector2 mousePosition = GetMousePosition();
+                bool isMouseOverButton = CheckCollisionPointRec(mousePosition, Rectangle { buttonPosition.x, buttonPosition.y, buttonSize.x, buttonSize.y });
+
+                if (isMouseOverButton && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+                    buttonPressed = true;
+                }
+
+                if (isMouseOverButton) {
+                    DrawRectangle(buttonPosition.x, buttonPosition.y, buttonSize.x, buttonSize.y, LIGHTGRAY);
+                } else {
+                    DrawRectangle(buttonPosition.x, buttonPosition.y, buttonSize.x, buttonSize.y, DARKGRAY);
+                }
+
+                // Draw button text
+                DrawText("Add car", buttonPosition.x + 37, buttonPosition.y + 15, 20, BLACK);
+
+                // Display the result of button press
+                if (buttonPressed) {
+                    int k = rand() % 24;
+                    int j = k;
+                    while (j == k) {
+                        j = rand() % 24;
+                    }
+                    Vehicle vehicle(1, "Car", arrayOfNodes[k], arrayOfNodes[j]);
+                    vehicles.push_back(vehicle);
+                    buttonPressed = false;
+                }
+
+                // Draw the nodes and edges
+                for (Node* node: arrayOfNodes) 
+                {
+                    DrawCircle(node->x + offsetX, node->y + offsetY, 5, RED);
+                    const char* name = node->name.c_str();
+                    DrawText(name, node->x + offsetX - 30, node->y + offsetY - 20, 20, BLACK);
+                }
+
+                for (Edge* edge : uniqueEdges) 
+                {
+                    DrawLine(edge->node1->x + offsetX, edge->node1->y + offsetY, edge->node2->x + offsetX, edge->node2->y + offsetY, RED);
+                    float midpointX = (edge->node1->x + edge->node2->x) / 2.0f;
+                    float midpointY = (edge->node1->y + edge->node2->y) / 2.0f;
+                    string congestionString = to_string(edge->no_of_agents);
+                    const char* congestion = congestionString.c_str();
+                    DrawText(congestion, midpointX + offsetX, midpointY + offsetY - 20, 25, BLUE);
+                }
+
+
+                for (Vehicle& v : vehicles) 
+                {
+
+                    if (!v.hasReachedDestination) 
+                    {
+                        // if (nearestVehicle->hasReachedDestination) 
+                        DrawRectangle(v.x + offsetX, v.y + offsetY, 25, 30, v.color);
+
+                        if (v.currentNodeToReach->getType() > 2) 
+                        {
+                            if (v.x == v.currentNodeToReach->x && v.y == v.currentNodeToReach->y) 
+                            {
+                                int i = 0;
+                                for (TrafficIntersection* intersection : intersections) 
+                                {
+                                    if (v.currentNodeToReach->x == intersection->x && v.currentNodeToReach->y == intersection->y) {
+                                        break;
+                                    } else {
+                                        i++;
+                                    }
+                                }
+                                int j = 0;
+                                for (bool check : intersections[i]->signals) 
+                                {
+                                    if (check != false) {
+                                        break;
+                                    } else {
+                                        j++;
+                                    }
+                                }
+                                if (areEdgesEqual(intersections[i]->edges[j], v.currentEdge))
+                                {
+                                    if (v.moveVehicle()) {
+                                        cout << "Vehicle reached destination" << v.id << endl;
+                                        v.hasReachedDestination = true;
+                                        // working on this
+                                        // if (v.id == 0 && v.goalNode != v.userGoalNode) {    
+                                        //     nearestDriver->reachedDestination = true;
+                                        // }
+                                        // if (v.goalNode == v.userGoalNode) {
+                                        //     nearestDriver->availability = true;
+                                        // }
+                                    }
+                                }
+                            } else {
+                                if (v.moveVehicle()) {
+                                    cout << "Vehicle reached destination 1"<< v.id  << endl;
+                                    v.hasReachedDestination = true;
+                                    nearestDriver->availability = true;
+                                }
+                            }
+                        } else {
+                            if (v.moveVehicle()) {
+                                cout << "Vehicle reached destination 2" << v.id << endl;
+                                v.hasReachedDestination = true;
+                                nearestDriver->availability = true;
+                            }
+                        }
+                    }
+                    else if (v.id == 0 && nearestDriver->availability && !nearestDriver->reachedDestination) {
+                        cout << "Starting ride" << endl;
+                        newVehicle = nearestDriver->startRide(currentUser);
+                        vehicles.push_back(*newVehicle);
+                    }
+                }
+                EndDrawing();
+                }
+                CloseWindow();
+
+                // Prompt user for rating
+                if (nearestDriver != nullptr) 
+                {
+                    double rating;
+                    cout << "Please rate your ride with driver " << nearestDriver->name << " (0-5): ";
+                    cin >> rating;
+
+                    // Validate rating
+                    while (rating < 0 || rating > 5) {
+                        cout << "Invalid rating. Please enter a value between 0 and 5: ";
+                        cin >> rating;
+                    }
+
+                    // Update and save driver rating
+                    nearestDriver->takeRating(rating);
+                    nearestDriver->availability = true;
+                    nearestDriver->reachedDestination = false;
+                    nearestDriver->saveDriver();
+
+                    // Print updated driver ratings
+                    cout << "Thank you for rating!" << endl;
+                    cout << "Updated Driver Information:" << endl;
+                    nearestDriver->display();
+
+                    cout << "Do you want to request another ride? (Y/N): ";
+                    char choice;
+                    cin >> choice;
+                    cin.ignore();
+                    if (choice == 'Y' || choice == 'y') {
+                        continue;
+                    }
+                    else {
+                        cout << "Exiting the program...\n";
+                        return 0;
+                    }
+                }
+
                 break;
             }
             break;
@@ -701,6 +877,7 @@ int main()
             return 0;
         default:
             cout << "Invalid choice. Please try again.\n";
+        }
         }
     }
     else if (currentDriver.email != "") {
@@ -731,279 +908,6 @@ int main()
             cout << "Invalid choice. Please try again.\n";
         }
     }
-
-
-    Driver* d6 = createRandomDriver("Arham", "arham@arham.com", "03001234567", true, "ABC123", 27 , 10);
-    // Vehicle v1(0, vehicleTypes[vehicle - 1], d6->currentLocation, arrayOfNodes[start - 1], arrayOfNodes);
-    Vehicle v1(0, vehicleTypes[vehicle - 1], arrayOfNodes);
-    //v1.color = ORANGE;
-    v1.speed = 0.9;
-    vehicles.push_back(v1);
-    d6->assignedVehicle = &v1;
-    drivers.push_back(d6);
-
-    
-    Driver* nearestDriver = findNearestDriver(arrayOfNodes[start - 1], drivers, vehicleTypes[vehicle - 1]);
-    if (nearestDriver != nullptr) 
-    {
-        char choice;
-        cout << "Nearest driver found: " << nearestDriver->name << endl;
-        nearestDriver->display();
-        cout << "Do you want to request the ride? (Y/N): ";
-        cin >> choice;
-        cin.ignore();
-        if (choice == 'Y' || choice == 'y') {
-            currentUser.requestRide(arrayOfNodes[start - 1], arrayOfNodes[end - 1]);
-        }
-    }
-    else 
-    {
-        cout << "No drivers available at the moment." << endl;
-    }
-
-    nearestDriver->acceptRide(currentUser);
-    nearestDriver->assignedVehicle->color = ORANGE;
-    cout << "Ride color changed for " << nearestDriver->assignedVehicle->type << endl;
-
-    if (nearestDriver->assignedVehicle->goalNode == nullptr) {
-        // nearestDriver->assignedVehicle->goalNode = arrayOfNodes[end - 1];
-        cout << "goal node is null" << endl;
-    }
-    if (nearestDriver->assignedVehicle->userGoalNode == nullptr) {
-        // nearestDriver->assignedVehicle->userGoalNode = arrayOfNodes[end - 1];
-        cout << "user goal node is null" << endl;
-    }
-
-    cout << "path of driver: " << nearestDriver->assignedVehicle->currentNode->name << " to " << nearestDriver->assignedVehicle->goalNode->name << " to " << nearestDriver->assignedVehicle->userGoalNode->name << endl;
-
-    // Raylib window
-    InitWindow(1920, 1080, "Ride Sharing App");
-
-    Image trafficLight = LoadImage("src\\utils\\light.png");
-    Texture2D textureLight = LoadTextureFromImage(trafficLight);
-
-    SetTargetFPS(60);
-    int offsetX = -37;
-    int offsetY = -50;
-    int i = 0;
-
-    // while (!WindowShouldClose()) {
-    //     i++;
-    //     if (i == 100) {
-    //         for (TrafficIntersection* intersection : intersections) {
-    //             intersection->changeLights();
-    //         }
-    //         i = 0;
-    //     }
-    //     BeginDrawing();
-    //     ClearBackground(RAYWHITE);
-
-    //     // Draw the traffic lights
-    //     for (TrafficIntersection* intersection : intersections) {
-    //         DrawTextureEx(textureLight, Vector2{ intersection->x + offsetX -20, intersection->y + offsetY + 5 }, 0.0f, 0.09, WHITE);
-    //     }
-
-    //     // Check mouse and button interactions
-    //     Vector2 mousePosition = GetMousePosition();
-    //     bool isMouseOverButton = CheckCollisionPointRec(mousePosition, Rectangle { buttonPosition.x, buttonPosition.y, buttonSize.x, buttonSize.y });
-
-    //     if (isMouseOverButton && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-    //         buttonPressed = true;
-    //     }
-
-    //     if (isMouseOverButton) {
-    //         DrawRectangle(buttonPosition.x, buttonPosition.y, buttonSize.x, buttonSize.y, LIGHTGRAY);
-    //     } else {
-    //         DrawRectangle(buttonPosition.x, buttonPosition.y, buttonSize.x, buttonSize.y, DARKGRAY);
-    //     }
-
-    //     // Draw button text
-    //     DrawText("Add car", buttonPosition.x + 37, buttonPosition.y + 15, 20, BLACK);
-
-    //     // Display the result of button press
-    //     if (buttonPressed) {
-    //         int k = rand() % 24;
-    //         int j = k;
-    //         while (j == k) {
-    //             j = rand() % 24;
-    //         }
-    //         Vehicle vehicle(1, "Car", arrayOfNodes[k], arrayOfNodes[j], arrayOfNodes);
-    //         vehicles.push_back(vehicle);
-    //         buttonPressed = false;
-    //     }
-
-    //     // Draw the nodes and edges
-    //     for (Node* node: arrayOfNodes) 
-    //     {
-    //         DrawCircle(node->x + offsetX, node->y + offsetY, 5, RED);
-    //         const char* name = node->name.c_str();
-    //         DrawText(name, node->x + offsetX - 30, node->y + offsetY - 20, 20, BLACK);
-    //     }
-
-    //     for (Edge* edge : uniqueEdges) 
-    //     {
-    //         DrawLine(edge->node1->x + offsetX, edge->node1->y + offsetY, edge->node2->x + offsetX, edge->node2->y + offsetY, RED);
-    //         float midpointX = (edge->node1->x + edge->node2->x) / 2.0f;
-    //         float midpointY = (edge->node1->y + edge->node2->y) / 2.0f;
-    //         string congestionString = to_string(edge->no_of_agents);
-    //         const char* congestion = congestionString.c_str();
-    //         DrawText(congestion, midpointX + offsetX, midpointY + offsetY - 20, 25, BLUE);
-    //     }
-
-    //     for (Vehicle& v : vehicles) 
-    //     {
-    //         if (!v.hasReachedDestination) 
-    //         {
-    //             DrawRectangle(v.x + offsetX, v.y + offsetY, 25, 30, v.color);
-
-    //             if (v.currentNodeToReach->getType() > 2) 
-    //             {
-    //                 if (v.x == v.currentNodeToReach->x && v.y == v.currentNodeToReach->y) 
-    //                 {
-    //                     int i = 0;
-    //                     for (TrafficIntersection* intersection : intersections) 
-    //                     {
-    //                         if (v.currentNodeToReach->x == intersection->x && v.currentNodeToReach->y == intersection->y) {
-    //                             break;
-    //                         } else {
-    //                             i++;
-    //                         }
-    //                     }
-    //                     int j = 0;
-    //                     for (bool check : intersections[i]->signals) 
-    //                     {
-    //                         if (check != false) {
-    //                             break;
-    //                         } else {
-    //                             j++;
-    //                         }
-    //                     }
-    //                     if (areEdgesEqual(intersections[i]->edges[j], v.currentEdge))
-    //                     {
-    //                         if (v.moveVehicle()) {
-    //                             v.hasReachedDestination = true;
-    //                         }
-    //                     }
-    //                 } else {
-    //                     if (v.moveVehicle()) {
-    //                         v.hasReachedDestination = true;
-    //                     }
-    //                 }
-    //             } else {
-    //                 if (v.moveVehicle()) {
-    //                     v.hasReachedDestination = true;
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     EndDrawing();
-    // }
-    // CloseWindow();
-
-    
-    while (!WindowShouldClose()) {
-        i++;
-        if (i == 100) {
-            for (TrafficIntersection* intersection : intersections) {
-                intersection->changeLights();
-            }
-            i = 0;
-        }
-        BeginDrawing();
-        ClearBackground(RAYWHITE);
-
-        // Draw the traffic lights
-        for (TrafficIntersection* intersection : intersections) {
-            DrawTextureEx(textureLight, Vector2{ intersection->x + offsetX -20, intersection->y + offsetY + 5 }, 0.0f, 0.09, WHITE);
-        }
-
-        // Check mouse and button interactions
-        Vector2 mousePosition = GetMousePosition();
-        bool isMouseOverButton = CheckCollisionPointRec(mousePosition, Rectangle { buttonPosition.x, buttonPosition.y, buttonSize.x, buttonSize.y });
-
-        if (isMouseOverButton && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-            buttonPressed = true;
-        }
-
-        if (isMouseOverButton) {
-            DrawRectangle(buttonPosition.x, buttonPosition.y, buttonSize.x, buttonSize.y, LIGHTGRAY);
-        } else {
-            DrawRectangle(buttonPosition.x, buttonPosition.y, buttonSize.x, buttonSize.y, DARKGRAY);
-        }
-
-        // Draw button text
-        DrawText("Add car", buttonPosition.x + 37, buttonPosition.y + 15, 20, BLACK);
-
-        // Display the result of button press
-        if (buttonPressed) {
-            int k = rand() % 24;
-            int j = k;
-            while (j == k) {
-                j = rand() % 24;
-            }
-            Vehicle vehicle(1, "Car", arrayOfNodes[k], arrayOfNodes[j], arrayOfNodes);
-            vehicles.push_back(vehicle);
-            buttonPressed = false;
-        }
-
-        // Draw the nodes and edges
-        for (Node* node: arrayOfNodes) {
-            DrawCircle(node->x + offsetX, node->y + offsetY, 5, RED);
-            const char* name = node->name.c_str();
-            DrawText(name, node->x + offsetX - 30, node->y + offsetY - 20, 20, BLACK);
-        }
-
-        for (Edge* edge : uniqueEdges) {
-            DrawLine(edge->node1->x + offsetX, edge->node1->y + offsetY, edge->node2->x + offsetX, edge->node2->y + offsetY, RED);
-            float midpointX = (edge->node1->x + edge->node2->x) / 2.0f;
-            float midpointY = (edge->node1->y + edge->node2->y) / 2.0f;
-            string congestionString = to_string(edge->no_of_agents);
-            const char* congestion = congestionString.c_str();
-            DrawText(congestion, midpointX + offsetX, midpointY + offsetY - 20, 25, BLUE);
-        }
-
-        for (Vehicle& v : vehicles) {
-            if (!v.hasReachedDestination) {
-                DrawRectangle(v.x + offsetX, v.y + offsetY, 25, 30, v.color);
-
-                if (v.currentNodeToReach->getType() > 2) {
-                    if (v.x == v.currentNodeToReach->x && v.y == v.currentNodeToReach->y) {
-                        int i = 0;
-                        for (TrafficIntersection* intersection : intersections) {
-                            if (v.currentNodeToReach->x == intersection->x && v.currentNodeToReach->y == intersection->y) {
-                                break;
-                            } else {
-                                i++;
-                            }
-                        }
-                        int j = 0;
-                        for (bool check : intersections[i]->signals) {
-                            if (check != false) {
-                                break;
-                            } else {
-                                j++;
-                            }
-                        }
-                        if (areEdgesEqual(intersections[i]->edges[j], v.currentEdge)) {
-                            if (v.moveVehicle()) {
-                                v.hasReachedDestination = true;
-                            }
-                        }
-                    } else {
-                        if (v.moveVehicle()) {
-                            v.hasReachedDestination = true;
-                        }
-                    }
-                } else {
-                    if (v.moveVehicle()) {
-                        v.hasReachedDestination = true;
-                    }
-                }
-            }
-        }
-        EndDrawing();
-    }
-    CloseWindow();
 
     return 0;
 }

@@ -49,6 +49,20 @@ void User::saveUser() const {
         usersJson = json::array();
     }
 
+    // Check if the user already exists in the JSON array
+    bool userExists = false;
+    for (auto& item : usersJson) {
+        if (item["email"] == email) {
+            // Update existing user information
+            item["name"] = name;
+            item["gender"] = gender;
+            item["phone"] = phoneNumber;
+            item["age"] = age;
+            userExists = true;
+            break;
+        }
+    }
+
     json userJson = {
         {"name", name},
         {"email", email},
@@ -56,7 +70,6 @@ void User::saveUser() const {
         {"phone", phoneNumber},
         {"age", age},
     };
-
     usersJson.push_back(userJson);
 
     std::ofstream outputFile("users.json");
