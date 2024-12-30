@@ -203,3 +203,4 @@ void Vehicle::updateDestination(Node* nextDestination)
         return;
     }
 }
+

@@ -52,6 +52,7 @@ public:
 
     // Update destination
     void updateDestination(Node* nextDestination);
+
 };
 
 #endif

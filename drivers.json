@@ -15,12 +15,12 @@
     {
         "age": 30,
         "availability": true,
-        "averageRating": 0.0,
+        "averageRating": 5.0,
         "email": "ahmed@driver.com",
         "gender": true,
         "licenseNumber": "XYZ456",
         "name": "Ahmed",
-        "numberOfRidesCompleted": 0,
+        "numberOfRidesCompleted": 1,
         "phone": "03123456789",
         "vehicleType": "Rickshaw",
         "yearsOfExperience": 3
@@ -41,12 +41,12 @@
     {
         "age": 40,
         "availability": true,
-        "averageRating": 4.0,
+        "averageRating": 0.0,
         "email": "john@driver.com",
         "gender": true,
         "licenseNumber": "GHI012",
         "name": "John",
-        "numberOfRidesCompleted": 1,
+        "numberOfRidesCompleted": 0,
         "phone": "03345678901",
         "vehicleType": "Bus",
         "yearsOfExperience": 4
@@ -74,7 +74,7 @@
         "name": "Arham",
         "numberOfRidesCompleted": 0,
         "phone": "03001234567",
-        "vehicleType": "Bus",
+        "vehicleType": "Rickshaw",
         "yearsOfExperience": 10
     }
 ]

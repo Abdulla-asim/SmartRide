@@ -194,6 +194,35 @@ Driver Driver::loadDriver(const std::string& email)
     return driver;
 }
 
+// Function to load all drivers from the drivers.json file
+std::vector<Driver> Driver::loadAllDrivers() {
+    std::vector<Driver> drivers;
+    std::ifstream driverFile("drivers.json");
+    if (driverFile.is_open()) {
+        nlohmann::json j;
+        driverFile >> j;
+        for (const auto& item : j) {
+            Driver driver;
+            driver.name = item.value("name", "");
+            driver.email = item.value("email", "");
+            driver.gender = item.value("gender", false);
+            driver.phoneNumber = item.value("phone", "");
+            driver.age = item.value("age", 0);
+            driver.vehicleType = item.value("vehicleType", "");
+            driver.licenseNumber = item.value("licenseNumber", "");
+            driver.yearsOfExperience = item.value("yearsOfExperience", 0);
+            driver.averageRating = item.value("averageRating", 0.0);
+            driver.numberOfRidesCompleted = item.value("numberOfRidesCompleted", 0);
+            driver.availability = item.value("availability", true);
+            drivers.push_back(driver);
+        }
+        driverFile.close();
+    } else {
+        std::cerr << "Error opening file for reading." << std::endl;
+    }
+    return drivers;
+}
+
 void Driver::moveAlongPath() {
     if (assignedVehicle && !assignedVehicle->path.empty()) {
         assignedVehicle->moveVehicle(); // Update vehicle's position

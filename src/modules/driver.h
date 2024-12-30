@@ -40,6 +40,7 @@ public:
 
     void saveDriver() const;
     static Driver loadDriver(const std::string& email);
+    static vector<Driver> loadAllDrivers();
 
     void moveAlongPath();
 };
