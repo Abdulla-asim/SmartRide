@@ -1,23 +1,14 @@
-[
-    {
+{
+    "ab": {
         "age": 20,
-        "email": "ab",
         "gender": true,
-        "name": "Abdullah Asim",
+        "name": "abdullah",
         "phone": "03275883747"
     },
-    {
-        "age": 21,
-        "email": "mueed@example.com",
-        "gender": "true",
-        "name": "Abdul Mueed",
-        "phone": "03247854965"
-    },
-    {
-        "age": 21,
-        "email": "rohail@user.com",
-        "gender": true,
-        "name": "rohail",
-        "phone": "03214587498"
+    "m": {
+        "age": 87,
+        "gender": false,
+        "name": "mueed",
+        "phone": "01561646846"
     }
-]
+}

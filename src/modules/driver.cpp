@@ -94,8 +94,7 @@ void Driver::display() const
 
 using json = nlohmann::json;
 
-void Driver::saveDriver() const 
-{
+void Driver::saveDriver() const {
     std::ifstream inputFile("drivers.json");
     json driversJson;
 
@@ -106,48 +105,24 @@ void Driver::saveDriver() const
         inputFile.close();
     }
 
-    // Ensure driversJson is an array
-    if (!driversJson.is_array()) {
-        driversJson = json::array();
+    // Ensure driversJson is an object
+    if (!driversJson.is_object()) {
+        driversJson = json::object();
     }
 
-    // Check if the driver already exists in the JSON array
-    bool driverExists = false;
-    for (auto& item : driversJson) {
-        if (item["email"] == email) {
-            // Update existing driver information
-            item["name"] = name;
-            item["gender"] = gender;
-            item["phone"] = phoneNumber;
-            item["age"] = age;
-            item["vehicleType"] = vehicleType;
-            item["licenseNumber"] = licenseNumber;
-            item["yearsOfExperience"] = yearsOfExperience;
-            item["averageRating"] = averageRating;
-            item["numberOfRidesCompleted"] = numberOfRidesCompleted;
-            item["availability"] = availability;
-            driverExists = true;
-            break;
-        }
-    }
-
-    // If the driver does not exist, add a new entry
-    if (!driverExists) {
-        json driverJson = {
-            {"name", name},
-            {"email", email},
-            {"gender", gender},
-            {"phone", phoneNumber},
-            {"age", age},
-            {"vehicleType", vehicleType},
-            {"licenseNumber", licenseNumber},
-            {"yearsOfExperience", yearsOfExperience},
-            {"averageRating", averageRating},
-            {"numberOfRidesCompleted", numberOfRidesCompleted},
-            {"availability", availability}
-        };
-        driversJson.push_back(driverJson);
-    }
+    // Update or add the driver information using email as the key
+    driversJson[email] = {
+        {"name", name},
+        {"gender", gender},
+        {"phone", phoneNumber},
+        {"age", age},
+        {"vehicleType", vehicleType},
+        {"licenseNumber", licenseNumber},
+        {"yearsOfExperience", yearsOfExperience},
+        {"averageRating", averageRating},
+        {"numberOfRidesCompleted", numberOfRidesCompleted},
+        {"availability", availability}
+    };
 
     std::ofstream outputFile("drivers.json");
     if (outputFile.is_open()) {
@@ -167,23 +142,20 @@ Driver Driver::loadDriver(const std::string& email)
     {
         nlohmann::json j;
         driverFile >> j;
-        for (const auto& item : j) 
+        if (j.contains(email)) 
         {
-            if (item["email"] == email) 
-            {
-                driver.name = item["name"];
-                driver.email = item["email"];
-                driver.gender = item["gender"];
-                driver.phoneNumber = item["phone_number"];
-                driver.age = item["age"];
-                driver.vehicleType = item["vehicle_type"];
-                driver.licenseNumber = item["license_number"];
-                driver.yearsOfExperience = item["years_of_experience"];
-                driver.averageRating = item["average_rating"];
-                driver.numberOfRidesCompleted = item["number_of_rides_completed"];
-                driver.availability = item["availability"];
-                return driver;
-            }
+            auto item = j[email];
+            driver.name = item.value("name", "");
+            driver.email = email;
+            driver.gender = item.value("gender", false);
+            driver.phoneNumber = item.value("phone", "");
+            driver.age = item.value("age", 0);
+            driver.vehicleType = item.value("vehicleType", "");
+            driver.licenseNumber = item.value("licenseNumber", "");
+            driver.yearsOfExperience = item.value("yearsOfExperience", 0);
+            driver.averageRating = item.value("averageRating", 0.0);
+            driver.numberOfRidesCompleted = item.value("numberOfRidesCompleted", 0);
+            driver.availability = item.value("availability", true);
         }
         driverFile.close();
     } 
@@ -201,10 +173,11 @@ std::vector<Driver> Driver::loadAllDrivers() {
     if (driverFile.is_open()) {
         nlohmann::json j;
         driverFile >> j;
-        for (const auto& item : j) {
+        for (auto it = j.begin(); it != j.end(); ++it) {
             Driver driver;
+            auto item = it.value();
             driver.name = item.value("name", "");
-            driver.email = item.value("email", "");
+            driver.email = it.key();
             driver.gender = item.value("gender", false);
             driver.phoneNumber = item.value("phone", "");
             driver.age = item.value("age", 0);

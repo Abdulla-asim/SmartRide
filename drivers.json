@@ -1,9 +1,20 @@
-[
-    {
+{
+    "ahmed@driver.com": {
+        "age": 30,
+        "availability": true,
+        "averageRating": 0.0,
+        "gender": true,
+        "licenseNumber": "XYZ456",
+        "name": "Ahmed",
+        "numberOfRidesCompleted": 0,
+        "phone": "03123456789",
+        "vehicleType": "Rickshaw",
+        "yearsOfExperience": 3
+    },
+    "ali@driver.com": {
         "age": 25,
         "availability": true,
         "averageRating": 0.0,
-        "email": "ali@driver.com",
         "gender": true,
         "licenseNumber": "ABC123",
         "name": "Ali",
@@ -12,37 +23,22 @@
         "vehicleType": "Car",
         "yearsOfExperience": 5
     },
-    {
-        "age": 30,
-        "availability": true,
-        "averageRating": 5.0,
-        "email": "ahmed@driver.com",
-        "gender": true,
-        "licenseNumber": "XYZ456",
-        "name": "Ahmed",
-        "numberOfRidesCompleted": 1,
-        "phone": "03123456789",
-        "vehicleType": "Rickshaw",
-        "yearsOfExperience": 3
-    },
-    {
-        "age": 35,
+    "arham@driver.com": {
+        "age": 27,
         "availability": true,
         "averageRating": 0.0,
-        "email": "sara@driver.com",
-        "gender": false,
-        "licenseNumber": "DEF789",
-        "name": "Sara",
+        "gender": true,
+        "licenseNumber": "ABC123",
+        "name": "Arham",
         "numberOfRidesCompleted": 0,
-        "phone": "03234567890",
-        "vehicleType": "Bike",
-        "yearsOfExperience": 7
+        "phone": "03001234567",
+        "vehicleType": "Rickshaw",
+        "yearsOfExperience": 10
     },
-    {
+    "john@driver.com": {
         "age": 40,
         "availability": true,
         "averageRating": 0.0,
-        "email": "john@driver.com",
         "gender": true,
         "licenseNumber": "GHI012",
         "name": "John",
@@ -51,11 +47,10 @@
         "vehicleType": "Bus",
         "yearsOfExperience": 4
     },
-    {
+    "maria@driver.com": {
         "age": 45,
         "availability": true,
         "averageRating": 0.0,
-        "email": "maria@driver.com",
         "gender": false,
         "licenseNumber": "JKL345",
         "name": "Maria",
@@ -64,17 +59,16 @@
         "vehicleType": "Car",
         "yearsOfExperience": 6
     },
-    {
-        "age": 27,
+    "sara@driver.com": {
+        "age": 35,
         "availability": true,
         "averageRating": 0.0,
-        "email": "arham@driver.com",
-        "gender": true,
-        "licenseNumber": "ABC123",
-        "name": "Arham",
+        "gender": false,
+        "licenseNumber": "DEF789",
+        "name": "Sara",
         "numberOfRidesCompleted": 0,
-        "phone": "03001234567",
-        "vehicleType": "Rickshaw",
-        "yearsOfExperience": 10
+        "phone": "03234567890",
+        "vehicleType": "Bike",
+        "yearsOfExperience": 7
     }
-]
+}

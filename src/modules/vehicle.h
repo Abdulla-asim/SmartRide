@@ -27,7 +27,7 @@ public:
     bool hasReachedDestination = false; // Destination reached status
     bool pickingUp = false;    // Picking up a passenger status
     Node* userGoalNode;        // Goal node for the user
-    Color color = BLUE;        // Color of the vehicle
+    Color color = RED;        // Color of the vehicle
 
     // Vehicle types
     static string vehicleTypes[4];

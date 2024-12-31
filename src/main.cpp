@@ -246,21 +246,26 @@ int main()
     // Seed the random number generator
     srand(static_cast<unsigned int>(time(0)));
 
+    /*
+    "Planeet Namek", "The Abyss", "Crystal Peak", "Colloseum of Fools", "Deepnest", 
+        "King\'s Pass", "Final Destination", "Forgotten Crossroads", "Greenpath", "Howling Cliffs",
+        "Green Hill Zone", "Fog Canyon", "Dirtmouth", "Royal Waterways"*/
+
     // Create nodes with names
-    TrafficIntersection* node1Intersection = new TrafficIntersection(11, 1000, 800, "Clifton", 4);
-    TrafficIntersection* node2Intersection = new TrafficIntersection(12, 600, 400, "Saddar", 4);
-    TrafficIntersection* node3Intersection = new TrafficIntersection(13, 800, 100, "Defence", 4);
-    TrafficIntersection* node4Intersection = new TrafficIntersection(14, 1300, 950, "Gulshan", 4);
-    TrafficIntersection* node5Intersection = new TrafficIntersection(15, 1800, 390, "Korangi", 3);
-    TrafficIntersection* node6Intersection = new TrafficIntersection(16, 1860, 490, "Malir", 3);
-    TrafficIntersection* node7Intersection = new TrafficIntersection(17, 1700, 490, "ShahFaisal", 3);
-    TrafficIntersection* node8Intersection = new TrafficIntersection(18, 1600, 450, "Nazimabad", 3);
-    TrafficIntersection* node9Intersection = new TrafficIntersection(19, 1200, 530, "Liaquatabad", 3);
-    TrafficIntersection* node10Intersection = new TrafficIntersection(20, 1000, 100, "Orangi", 3);
-    TrafficIntersection* node11Intersection = new TrafficIntersection(21, 210, 450, "NorthNazimabad", 3);
-    TrafficIntersection* node12Intersection = new TrafficIntersection(22, 500, 900, "Kemari", 3);
-    TrafficIntersection* node13Intersection = new TrafficIntersection(23, 800, 800, "Garden", 3);
-    TrafficIntersection* node14Intersection = new TrafficIntersection(24, 1600, 800, "UniversityRoad", 3);
+    TrafficIntersection* node1Intersection = new TrafficIntersection(11, 1000, 800, "Planeet Namek", 4);
+    TrafficIntersection* node2Intersection = new TrafficIntersection(12, 600, 400, "The Abyss", 4);
+    TrafficIntersection* node3Intersection = new TrafficIntersection(13, 800, 100, "Crystal Peak", 4);
+    TrafficIntersection* node4Intersection = new TrafficIntersection(14, 1300, 950, "Colloseum of Fools", 4);
+    TrafficIntersection* node5Intersection = new TrafficIntersection(15, 1800, 390, "Deepnest", 3);
+    TrafficIntersection* node6Intersection = new TrafficIntersection(16, 1860, 490, "King\'s Pass", 3);
+    TrafficIntersection* node7Intersection = new TrafficIntersection(17, 1700, 490, "Final Destination", 3);
+    TrafficIntersection* node8Intersection = new TrafficIntersection(18, 1600, 450, "Forgotten Crossroads", 3);
+    TrafficIntersection* node9Intersection = new TrafficIntersection(19, 1200, 530, "Greenpath", 3);
+    TrafficIntersection* node10Intersection = new TrafficIntersection(20, 1000, 100, "Howling Cliffs", 3);
+    TrafficIntersection* node11Intersection = new TrafficIntersection(21, 210, 450, "Green Hill Zone", 3);
+    TrafficIntersection* node12Intersection = new TrafficIntersection(22, 500, 900, "Fog Canyon", 3);
+    TrafficIntersection* node13Intersection = new TrafficIntersection(23, 800, 800, "Dirtmouth", 3);
+    TrafficIntersection* node14Intersection = new TrafficIntersection(24, 1600, 800, "Royal Waterways", 3);
 
     TrafficIntersection* intersections[14] = {
      node1Intersection,
@@ -279,16 +284,20 @@ int main()
      node14Intersection
     };
 
-    Node* node1 = new Node(1, 200, 200, "JamshedTown");
-    Node* node2 = new Node(2, 400, 600, "GardenEast");
-    Node* node3 = new Node(3, 1200, 250, "MemonSociety");
-    Node* node4 = new Node(4, 830, 500, "FederalBArea");
-    Node* node5 = new Node(5, 1000, 1000, "LalKothi");
-    Node* node6 = new Node(6, 1200, 1070, "Gulshan-e-Iqbal");
-    Node* node7 = new Node(7, 1850, 860, "Kharadar");
-    Node* node8 = new Node(8, 1200, 800, "MohammadAliSociety");
-    Node* node9 = new Node(9, 1400, 400, "Dhoraji");
-    Node* node10 = new Node(10, 1000, 600, "FaisalBase");
+    /* "Kami\'s Lookout", "Tournament of Power", "Chamber of Spirit and Time", "Hidden Leaf Village", "Heuko Mondo",
+        "Infinity Castle", "AWC Housing Society", "Abdul Wahab Society", "Soul Society", "City of Tears",
+    */
+        
+    Node* node1 = new Node(1, 200, 200, "Kami\'s Lookout");
+    Node* node2 = new Node(2, 400, 600, "Tournament of Power");
+    Node* node3 = new Node(3, 1200, 250, "Chamber of Spirit and Time");
+    Node* node4 = new Node(4, 830, 500, "Hidden Leaf Village");
+    Node* node5 = new Node(5, 1000, 1000, "Heuko Mondo");
+    Node* node6 = new Node(6, 1200, 1070, "Infinity Castle");
+    Node* node7 = new Node(7, 1850, 860, "AWC Housing Society");
+    Node* node8 = new Node(8, 1200, 800, "Abdul Wahab Society");
+    Node* node9 = new Node(9, 1400, 400, "Soul Society");
+    Node* node10 = new Node(10, 1000, 600, "City of Tears");
 
 
     Node* node11 = dynamic_cast<Node*>(node1Intersection);
@@ -339,6 +348,19 @@ int main()
     node18->addNeighbor(node15);
     node17->addNeighbor(node16);
     node16->addNeighbor(node15);
+    node16->addNeighbor(node20);
+    node3->addNeighbor(node15);
+    node15->addNeighbor(node14);
+    node23->addNeighbor(node21);
+    node22->addNeighbor(node12);
+    node23->addNeighbor(node12);
+    node14->addNeighbor(node11);
+    node3->addNeighbor(node12);
+    node13->addNeighbor(node23);
+    node19->addNeighbor(node11);
+    node9->addNeighbor(node24);
+
+
 
 
     vector<Edge*> uniqueEdges;
@@ -428,11 +450,11 @@ int main()
     //cout << "Welcome to the Traffic Congestion Control System\n";
 
     const char* locations[] = {
-        "JamshedTown", "GardenEast", "MemonSociety", "FederalBArea", "LalKothi",
-        "Gulshan-e-Iqbal", "Kharadar", "MohammadAliSociety", "Dhoraji", "FaisalBase",
-        "Clifton", "Saddar", "Defence", "Gulshan", "Korangi",
-        "Malir", "ShahFaisal", "Nazimabad", "Liaquatabad", "Orangi",
-        "NorthNazimabad", "Kemari", "Garden", "UniversityRoad"
+        "Kami\'s Lookout", "Tournament of Power", "Chamber of Spirit and Time", "Hidden Leaf Village", "Heuko Mondo",
+        "Infinity Castle", "AWC Housing Society", "Abdul Wahab Society", "Soul Society", "City of Tears",
+        "Planeet Namek", "The Abyss", "Crystal Peak", "Colloseum of Fools", "Deepnest", 
+        "King\'s Pass", "Final Destination", "Forgotten Crossroads", "Greenpath", "Howling Cliffs",
+        "Green Hill Zone", "Fog Canyon", "Dirtmouth", "Royal Waterways"
     };
 
     const char* vehicleTypes[] = {
@@ -663,7 +685,7 @@ int main()
                         i = 0;
                     }
                     BeginDrawing();
-                    ClearBackground(RAYWHITE);
+                    ClearBackground(LIGHTGRAY);  // Clear the screen
 
                     // Draw the traffic lights
                     for (TrafficIntersection* intersection : intersections) {
@@ -685,7 +707,7 @@ int main()
                     }
 
                     // Draw button text
-                    DrawText("Add car", buttonPosition.x + 37, buttonPosition.y + 15, 20, BLACK);
+                    DrawText("Add car", buttonPosition.x + 37, buttonPosition.y + 15, 20, RED);
 
                     // Display the result of button press
                     if (buttonPressed) {
@@ -703,7 +725,7 @@ int main()
                     for (Node* node : arrayOfNodes) {
                         DrawCircle(node->x + offsetX, node->y + offsetY, 5, RED);
                         const char* name = node->name.c_str();
-                        DrawText(name, node->x + offsetX - 30, node->y + offsetY - 20, 20, BLACK);
+                        DrawText(name, node->x + offsetX - 30, node->y + offsetY - 20, 20, PINK);
                     }
 
                     for (Edge* edge : uniqueEdges) {
@@ -712,7 +734,7 @@ int main()
                         float midpointY = (edge->node1->y + edge->node2->y) / 2.0f;
                         string congestionString = to_string(edge->no_of_agents);
                         const char* congestion = congestionString.c_str();
-                        DrawText(congestion, midpointX + offsetX, midpointY + offsetY - 20, 25, BLUE);
+                        DrawText(congestion, midpointX + offsetX, midpointY + offsetY - 20, 25, BLACK);
                     }
 
                     for (Vehicle& v : vehicles) {

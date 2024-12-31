@@ -45,32 +45,17 @@ void User::saveUser() const {
     }
 
     // Ensure usersJson is an array
-    if (!usersJson.is_array()) {
-        usersJson = json::array();
+    if (!usersJson.is_object()) {
+        usersJson = json::object();
     }
 
-    // Check if the user already exists in the JSON array
-    bool userExists = false;
-    for (auto& item : usersJson) {
-        if (item["email"] == email) {
-            // Update existing user information
-            item["name"] = name;
-            item["gender"] = gender;
-            item["phone"] = phoneNumber;
-            item["age"] = age;
-            userExists = true;
-            break;
-        }
-    }
-
-    json userJson = {
+    // Update or add the driver information using email as the key
+    usersJson[email] = {
         {"name", name},
-        {"email", email},
         {"gender", gender},
         {"phone", phoneNumber},
-        {"age", age},
+        {"age", age}
     };
-    usersJson.push_back(userJson);
 
     std::ofstream outputFile("users.json");
     if (outputFile.is_open()) {
@@ -88,17 +73,17 @@ User User::loadUser(const std::string& email) {
         cout << "Opened file" << endl;
         json j;
         file >> j;
-        for (const auto& item : j) {
-            if (item["email"] == email) {
-                cout << "User found" << endl;
+        if (j.contains(email)) {
+            auto item = j[email];
+            user.name = item.value("name", "");
+            user.email = email;
+            user.gender = item.value("gender", false);
+            user.phoneNumber = item.value("phone", "");
+            user.age = item.value("age", 0);
 
-                user.name = item["name"];
-                user.email = item["email"];
-                user.gender = item["gender"];
-                user.phoneNumber = item["phone"];
-                user.age = item["age"];
-                return user;
-            }
+        }
+        else {
+            cout << "User not found" << endl;
         }
         file.close();
     } else {
